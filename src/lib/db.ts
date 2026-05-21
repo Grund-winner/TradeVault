@@ -28,9 +28,12 @@ function getDirectDb(): PrismaClient {
 }
 
 // Auto-create tables if they don't exist (safe for Neon / serverless)
+// Neon pooled connections do NOT support multi-statement queries,
+// so we create each table separately.
 export async function ensureDatabase() {
+  const client = getDirectDb()
+
   try {
-    const client = getDirectDb()
     await client.$executeRawUnsafe(`
       CREATE TABLE IF NOT EXISTS trades (
         id SERIAL PRIMARY KEY,
@@ -52,7 +55,14 @@ export async function ensureDatabase() {
         "createdAt" TIMESTAMP NOT NULL DEFAULT NOW(),
         "updatedAt" TIMESTAMP NOT NULL DEFAULT NOW()
       );
+    `)
+    console.log('[TradeVault] trades table ready')
+  } catch (error) {
+    console.error('[TradeVault] Failed to create trades table:', error)
+  }
 
+  try {
+    await client.$executeRawUnsafe(`
       CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
         email TEXT NOT NULL UNIQUE,
@@ -64,8 +74,8 @@ export async function ensureDatabase() {
         "updatedAt" TIMESTAMP NOT NULL DEFAULT NOW()
       );
     `)
-    console.log('[TradeVault] Database tables ready')
+    console.log('[TradeVault] users table ready')
   } catch (error) {
-    console.error('[TradeVault] Failed to ensure database tables:', error)
+    console.error('[TradeVault] Failed to create users table:', error)
   }
 }
