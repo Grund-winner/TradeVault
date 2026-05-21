@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+
+# Build
+.next/
+/out/
+/build/
+
+# Environment
+.env
+.env.local
+.env.production.local
+.env.development.local
+
+# Vercel
+.vercel
+
+# Database
+/db/
+
+# Logs
+*.log
+dev.log
+server.log
+
+# IDE
+.vscode/
+.idea/
+
+# Misc
+.DS_Store
+*.pem
+*.tsbuildinfo
+next-env.d.ts
+download/
+upload/
+mini-services/
+.zscripts/
+skills/
+examples/
+worklog.md
+Caddyfile
+bun.lock

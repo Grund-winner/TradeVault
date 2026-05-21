@@ -1,0 +1,333 @@
+'use client';
+
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import Sidebar, { type TabId } from '@/components/trading/sidebar';
+import Header from '@/components/trading/header';
+import KpiCards from '@/components/trading/kpi-cards';
+import EquityCurve from '@/components/trading/equity-curve';
+import PnlChart from '@/components/trading/pnl-chart';
+import FiltersBar, { type Filters, applyFilters } from '@/components/trading/filters';
+import TradeJournal from '@/components/trading/trade-journal';
+import DetailedAnalysis from '@/components/trading/detailed-analysis';
+import CalendarView from '@/components/trading/calendar-view';
+import AddTradeDialog from '@/components/trading/add-trade-dialog';
+import { computeKPIs, type Trade } from '@/lib/mock-data';
+import { Plus, TrendingUp, FileText } from 'lucide-react';
+
+const defaultFilters: Filters = {
+  year: 'Tous',
+  month: null,
+  direction: 'Tous',
+  type: 'Tous',
+  strategy: 'Tous',
+  instrument: 'Tous',
+  timeframe: 'Tous',
+};
+
+// Empty state when no trades
+function EmptyState({ onAddTrade }: { onAddTrade: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5 }}
+      className="flex flex-col items-center justify-center py-24 text-center"
+    >
+      <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#ff6b2b]/20 to-[#ff4500]/10 border border-[#ff6b2b]/20 flex items-center justify-center mb-6">
+        <TrendingUp className="h-9 w-9 text-[#ff6b2b]" />
+      </div>
+      <h3 className="text-xl font-bold text-white mb-2">Bienvenue sur TradeVault</h3>
+      <p className="text-sm text-[#94a3b8] max-w-md mb-8">
+        Votre journal de trading est vide. Ajoutez votre premier trade pour commencer a suivre vos performances et analyser vos resultats.
+      </p>
+      <button
+        onClick={onAddTrade}
+        className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#ff6b2b] hover:bg-[#ff4500] text-white font-medium shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all hover:scale-105 active:scale-95"
+      >
+        <Plus className="h-5 w-5" />
+        Ajouter votre premier trade
+      </button>
+      <div className="flex items-center gap-6 mt-10 text-[#94a3b8]/60">
+        <div className="flex items-center gap-2">
+          <FileText className="h-4 w-4" />
+          <span className="text-xs">Journal de trades</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <TrendingUp className="h-4 w-4" />
+          <span className="text-xs">Analyse de performance</span>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+export default function Home() {
+  const [activeTab, setActiveTab] = useState<TabId>('dashboard');
+  const [filters, setFilters] = useState<Filters>(defaultFilters);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [allTradeData, setAllTradeData] = useState<Trade[]>([]);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Load trades from database API on mount
+  const fetchTrades = useCallback(async () => {
+    try {
+      const res = await fetch('/api/trades');
+      if (res.ok) {
+        const data = await res.json();
+        setAllTradeData(data);
+      }
+    } catch {
+      // API not available yet, start empty
+    } finally {
+      setIsLoaded(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchTrades();
+  }, [fetchTrades]);
+
+  const filteredTrades = useMemo(() => applyFilters(allTradeData, filters, searchQuery), [allTradeData, filters, searchQuery]);
+  const kpis = useMemo(() => computeKPIs(filteredTrades), [filteredTrades]);
+
+  const handleAddTrade = async (trade: Trade) => {
+    setIsSaving(true);
+    try {
+      const res = await fetch('/api/trades', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(trade),
+      });
+      if (res.ok) {
+        const created = await res.json();
+        setAllTradeData(prev => [created, ...prev].sort((a, b) => a.date.localeCompare(b.date)));
+        setShowAddDialog(false);
+        setActiveTab('journal');
+      }
+    } catch {
+      // Fallback: add locally
+      setAllTradeData(prev => [trade, ...prev].sort((a, b) => a.date.localeCompare(b.date)));
+      setShowAddDialog(false);
+      setActiveTab('journal');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteTrade = async (tradeId: number) => {
+    try {
+      const res = await fetch(`/api/trades?id=${tradeId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setAllTradeData(prev => prev.filter(t => t.id !== tradeId));
+      }
+    } catch {
+      // Fallback: remove locally
+      setAllTradeData(prev => prev.filter(t => t.id !== tradeId));
+    }
+  };
+
+  const pageVariants = {
+    initial: { opacity: 0, y: 12 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+    exit: { opacity: 0, y: -12, transition: { duration: 0.15 } },
+  };
+
+  // Show loading state briefly
+  if (!isLoaded) {
+    return (
+      <div className="flex min-h-screen bg-[#0a0a0f] items-center justify-center">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#ff6b2b] to-[#ff4500] flex items-center justify-center animate-pulse">
+            <TrendingUp className="h-4 w-4 text-white" />
+          </div>
+          <span className="text-sm text-[#94a3b8]">Chargement...</span>
+        </div>
+      </div>
+    );
+  }
+
+  const hasTrades = allTradeData.length > 0;
+  const hasFilteredTrades = filteredTrades.length > 0;
+
+  return (
+    <div className="flex min-h-screen bg-[#0a0a0f]">
+      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} allTrades={allTradeData} />
+
+      <main className="flex-1 min-h-screen grid-bg">
+        <Header />
+
+        <div className="px-4 md:px-6 py-6 max-w-[1600px] mx-auto">
+          {/* Filters */}
+          <FiltersBar
+            filters={filters}
+            onFiltersChange={setFilters}
+            trades={allTradeData}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+          />
+
+          {/* No trades at all - show welcome */}
+          {!hasTrades && (
+            <EmptyState onAddTrade={() => setShowAddDialog(true)} />
+          )}
+
+          {/* Has trades but filters return nothing */}
+          {hasTrades && !hasFilteredTrades && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center justify-center py-20 text-center"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center mb-4">
+                <svg className="h-7 w-7 text-[#94a3b8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-white mb-1">Aucun resultat</h3>
+              <p className="text-sm text-[#94a3b8] mb-4">Aucun trade ne correspond a vos filtres actuels.</p>
+              <button
+                onClick={() => {
+                  setFilters(defaultFilters);
+                  setSearchQuery('');
+                }}
+                className="text-xs text-[#ff6b2b] hover:text-[#ff8f5e] transition-colors font-medium"
+              >
+                Reinitialiser les filtres
+              </button>
+            </motion.div>
+          )}
+
+          {/* Tab Content - only show when there are filtered trades */}
+          {hasFilteredTrades && (
+            <AnimatePresence mode="wait">
+              {activeTab === 'dashboard' && (
+                <motion.div
+                  key="dashboard"
+                  variants={pageVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  className="space-y-6"
+                >
+                  <KpiCards trades={filteredTrades} />
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <EquityCurve trades={filteredTrades} />
+                    <PnlChart trades={filteredTrades} />
+                  </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.4 }}
+                      className="glass-card rounded-2xl p-6"
+                    >
+                      <h3 className="text-sm font-semibold text-white mb-4">Statistiques Gains / Pertes</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <p className="text-[10px] text-[#94a3b8] uppercase tracking-wider">Gain moyen</p>
+                          <p className="text-xl font-bold text-[#22c55e]">+{kpis.avgWinR}R</p>
+                          <p className="text-xs text-[#94a3b8]">${kpis.avgWinPnl.toLocaleString()}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[10px] text-[#94a3b8] uppercase tracking-wider">Perte moyenne</p>
+                          <p className="text-xl font-bold text-[#ef4444]">{kpis.avgLossR}R</p>
+                          <p className="text-xs text-[#94a3b8]">-${kpis.avgLossPnl.toLocaleString()}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[10px] text-[#94a3b8] uppercase tracking-wider">Plus grand gain</p>
+                          <p className="text-xl font-bold text-white">+{kpis.largestWin}R</p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[10px] text-[#94a3b8] uppercase tracking-wider">Plus grande perte</p>
+                          <p className="text-xl font-bold text-white">{kpis.largestLoss}R</p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[10px] text-[#94a3b8] uppercase tracking-wider">Series gagnantes</p>
+                          <p className="text-xl font-bold text-[#ff6b2b]">{kpis.maxConsWins}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-[10px] text-[#94a3b8] uppercase tracking-wider">Series perdantes</p>
+                          <p className="text-xl font-bold text-[#ff6b2b]">{kpis.maxConsLosses}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.5 }}
+                      className="glass-card rounded-2xl p-6"
+                    >
+                      <h3 className="text-sm font-semibold text-white mb-4">Resume de Performance</h3>
+                      <div className="space-y-4">
+                        {[
+                          { label: 'P&L Brut', value: `$${kpis.grossWins.toLocaleString()}`, sub: 'Total des gains', color: 'text-[#22c55e]' },
+                          { label: 'P&L Pertes', value: `$${kpis.grossLosses.toLocaleString()}`, sub: 'Total des pertes', color: 'text-[#ef4444]' },
+                          { label: 'P&L Net', value: `${kpis.netPnl >= 0 ? '+' : ''}$${kpis.netPnl.toLocaleString()}`, sub: 'Resultat net', color: kpis.netPnl >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]' },
+                          { label: 'Total R', value: `${kpis.totalR > 0 ? '+' : ''}${kpis.totalR}R`, sub: 'R-multiples cumules', color: kpis.totalR >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]' },
+                          { label: 'Profit Factor', value: kpis.profitFactor.toString(), sub: kpis.profitFactor >= 2 ? 'Excellent' : kpis.profitFactor >= 1.5 ? 'Bon' : 'A ameliorer', color: 'text-[#ff6b2b]' },
+                          { label: 'Risk Reward', value: kpis.riskReward.toString(), sub: 'Ratio moyen', color: 'text-[#ff6b2b]' },
+                        ].map((stat) => (
+                          <div key={stat.label} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
+                            <div>
+                              <p className="text-xs text-[#94a3b8]">{stat.label}</p>
+                              <p className="text-[10px] text-[#94a3b8]/60">{stat.sub}</p>
+                            </div>
+                            <p className={`text-sm font-bold ${stat.color}`}>{stat.value}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  </div>
+                </motion.div>
+              )}
+
+              {activeTab === 'journal' && (
+                <motion.div key="journal" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+                  <TradeJournal trades={filteredTrades} onDeleteTrade={handleDeleteTrade} onAddClick={() => setShowAddDialog(true)} />
+                </motion.div>
+              )}
+
+              {activeTab === 'detailed' && (
+                <motion.div key="detailed" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+                  <DetailedAnalysis trades={filteredTrades} />
+                </motion.div>
+              )}
+
+              {activeTab === 'calendar' && (
+                <motion.div key="calendar" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+                  <CalendarView trades={filteredTrades} />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
+
+          {/* Floating Add Button (mobile-friendly) */}
+          {hasTrades && (
+            <motion.button
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              onClick={() => setShowAddDialog(true)}
+              className="fixed bottom-6 right-6 w-14 h-14 rounded-2xl bg-[#ff6b2b] hover:bg-[#ff4500] text-white shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all z-40 flex items-center justify-center lg:hidden"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <Plus className="h-6 w-6" />
+            </motion.button>
+          )}
+        </div>
+      </main>
+
+      {/* AddTradeDialog at page level - always available regardless of tab/trade state */}
+      <AddTradeDialog
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+        onAdd={handleAddTrade}
+      />
+    </div>
+  );
+}
