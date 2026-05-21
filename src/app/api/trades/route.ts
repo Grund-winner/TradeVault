@@ -12,27 +12,10 @@ export async function GET() {
       return NextResponse.json({ error: 'Non authentifie' }, { status: 401 });
     }
 
-    const trades = await db.$queryRawUnsafe<Array<{
-      id: number;
-      date: string;
-      instrument: string;
-      category: string;
-      direction: string;
-      entry: number;
-      stop_loss: number;
-      take_profit: number;
-      pnl: number;
-      pnl_r: number;
-      status: string;
-      strategy: string;
-      type: string;
-      timeframe: string;
-      notes: string | null;
-      tags: string | null;
-    }>>(
-      `SELECT * FROM trades WHERE "userId" = $1 ORDER BY date ASC`,
-      currentUser.id
-    );
+    const trades = await db.trade.findMany({
+      where: { userId: currentUser.id },
+      orderBy: { date: 'asc' },
+    });
 
     const formatted = trades.map(t => ({
       id: t.id,
@@ -41,10 +24,10 @@ export async function GET() {
       category: t.category,
       direction: t.direction,
       entry: t.entry,
-      stopLoss: t.stop_loss,
-      takeProfit: t.take_profit,
+      stopLoss: t.stopLoss,
+      takeProfit: t.takeProfit,
       pnl: t.pnl,
-      pnlR: t.pnl_r,
+      pnlR: t.pnlR,
       status: t.status,
       strategy: t.strategy,
       type: t.type,
@@ -72,46 +55,44 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    const result = await db.$queryRawUnsafe<Array<{ id: number }>>(
-      `INSERT INTO trades (date, instrument, category, direction, entry, stop_loss, take_profit, pnl, pnl_r, status, strategy, type, timeframe, notes, tags, "userId", "createdAt", "updatedAt")
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW(), NOW()) RETURNING id`,
-      body.date,
-      body.instrument,
-      body.category,
-      body.direction,
-      body.entry,
-      body.stopLoss,
-      body.takeProfit,
-      body.pnl,
-      body.pnlR,
-      body.status,
-      body.strategy,
-      body.type,
-      body.timeframe,
-      body.notes || null,
-      body.tags ? (Array.isArray(body.tags) ? body.tags.join(',') : body.tags) : null,
-      currentUser.id
-    );
-
-    const tradeId = result[0].id;
+    const trade = await db.trade.create({
+      data: {
+        date: body.date,
+        instrument: body.instrument,
+        category: body.category,
+        direction: body.direction,
+        entry: body.entry,
+        stopLoss: body.stopLoss,
+        takeProfit: body.takeProfit,
+        pnl: body.pnl,
+        pnlR: body.pnlR,
+        status: body.status,
+        strategy: body.strategy,
+        type: body.type,
+        timeframe: body.timeframe,
+        notes: body.notes || null,
+        tags: body.tags ? (Array.isArray(body.tags) ? body.tags.join(',') : body.tags) : null,
+        userId: currentUser.id,
+      },
+    });
 
     const formatted = {
-      id: tradeId,
-      date: body.date,
-      instrument: body.instrument,
-      category: body.category,
-      direction: body.direction,
-      entry: body.entry,
-      stopLoss: body.stopLoss,
-      takeProfit: body.takeProfit,
-      pnl: body.pnl,
-      pnlR: body.pnlR,
-      status: body.status,
-      strategy: body.strategy,
-      type: body.type,
-      timeframe: body.timeframe,
-      notes: body.notes || undefined,
-      tags: body.tags ? (Array.isArray(body.tags) ? body.tags : body.tags.split(',')).filter(Boolean) : undefined,
+      id: trade.id,
+      date: trade.date,
+      instrument: trade.instrument,
+      category: trade.category,
+      direction: trade.direction,
+      entry: trade.entry,
+      stopLoss: trade.stopLoss,
+      takeProfit: trade.takeProfit,
+      pnl: trade.pnl,
+      pnlR: trade.pnlR,
+      status: trade.status,
+      strategy: trade.strategy,
+      type: trade.type,
+      timeframe: trade.timeframe,
+      notes: trade.notes || undefined,
+      tags: trade.tags ? trade.tags.split(',').filter(Boolean) : undefined,
     };
 
     return NextResponse.json(formatted, { status: 201 });
@@ -138,12 +119,12 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Trade ID is required' }, { status: 400 });
     }
 
-    // Only delete if owned by current user
-    await db.$executeRawUnsafe(
-      `DELETE FROM trades WHERE id = $1 AND "userId" = $2`,
-      parseInt(id),
-      currentUser.id
-    );
+    await db.trade.deleteMany({
+      where: {
+        id: parseInt(id),
+        userId: currentUser.id,
+      },
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {
