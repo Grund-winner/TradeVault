@@ -9,11 +9,11 @@ interface HeaderProps {
 
 export default function Header({ siteName = 'TradeVault', onSettingsClick }: HeaderProps) {
   return (
-    <header className="flex items-center justify-between px-6 py-4 bg-[#0e0e14]/80 backdrop-blur-xl border-b border-white/[0.06] sticky top-0 z-30">
+    <header className="flex items-center justify-between px-6 py-4 bg-background/80 backdrop-blur-xl border-b border-border sticky top-0 z-30">
       {/* Left - Title */}
       <div className="flex items-center gap-4">
         <div className="lg:hidden w-8" />
-        <h2 className="text-xl font-bold text-white tracking-tight">{siteName}</h2>
+        <h2 className="text-xl font-bold text-foreground tracking-tight">{siteName}</h2>
       </div>
 
       {/* Right - Actions */}
@@ -22,7 +22,7 @@ export default function Header({ siteName = 'TradeVault', onSettingsClick }: Hea
         {onSettingsClick && (
           <button
             onClick={onSettingsClick}
-            className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-[#94a3b8] hover:text-[#ff6b2b] hover:border-[#ff6b2b]/20 hover:bg-[#ff6b2b]/5 transition-all"
+            className="w-9 h-9 rounded-xl bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-[#ff6b2b] hover:border-[#ff6b2b]/20 hover:bg-[#ff6b2b]/5 transition-all"
             aria-label="Parametres"
           >
             <Settings className="h-4 w-4" />

@@ -150,7 +150,7 @@ export default function KpiCards({ trades }: KpiCardsProps) {
           className="glass-card rounded-2xl p-5 relative overflow-hidden group cursor-default"
         >
           {/* Icon */}
-          <div className="absolute top-4 right-4 text-[#94a3b8]/40 group-hover:text-[#ff6b2b]/40 transition-colors">
+          <div className="absolute top-4 right-4 text-muted-foreground/40 group-hover:text-[#ff6b2b]/40 transition-colors">
             {card.icon}
           </div>
 
@@ -197,7 +197,7 @@ export default function KpiCards({ trades }: KpiCardsProps) {
           {!card.isWinRate && !card.isHex && (
             <div className="mb-2">
               <motion.p
-                className="text-2xl font-bold text-white animate-count-up"
+                className="text-2xl font-bold text-foreground animate-count-up"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.5 }}
@@ -210,7 +210,7 @@ export default function KpiCards({ trades }: KpiCardsProps) {
             </div>
           )}
 
-          <p className="text-xs text-[#94a3b8] font-medium uppercase tracking-wider">{card.label}</p>
+          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{card.label}</p>
           <p className={`text-xs mt-1 font-medium ${'valueColor' in card ? '' : card.positive ? 'text-[#22c55e]' : 'text-[#ef4444]'}`} style={'valueColor' in card ? { color: card.valueColor } : undefined}>
             {card.subtitle}
           </p>

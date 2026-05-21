@@ -100,8 +100,8 @@ export default function CalendarView({ trades }: CalendarViewProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-bold text-white">Calendrier de Trading</h3>
-          <p className="text-xs text-[#94a3b8] mt-0.5">Visualisez vos trades jour par jour</p>
+          <h3 className="text-lg font-bold text-foreground">Calendrier de Trading</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">Visualisez vos trades jour par jour</p>
         </div>
       </div>
 
@@ -112,24 +112,24 @@ export default function CalendarView({ trades }: CalendarViewProps) {
           <div className="flex items-center justify-between mb-6">
             <button
               onClick={prevMonth}
-              className="p-2 rounded-xl bg-white/5 border border-white/[0.06] text-[#94a3b8] hover:text-white hover:border-[#ff6b2b]/20 transition-all"
+              className="p-2 rounded-xl bg-muted border border-border text-muted-foreground hover:text-foreground hover:border-[#ff6b2b]/20 transition-all"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <div className="text-center">
-              <h4 className="text-base font-bold text-white">{monthNames[month]} {year}</h4>
+              <h4 className="text-base font-bold text-foreground">{monthNames[month]} {year}</h4>
               <div className="flex items-center justify-center gap-3 mt-1">
                 <span className={`text-xs font-medium ${monthPnl >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
                   {monthPnl >= 0 ? '+' : ''}${monthPnl.toLocaleString()}
                 </span>
-                <span className="text-[10px] text-[#94a3b8]">
+                <span className="text-[10px] text-muted-foreground">
                   {monthWins}W / {monthLosses}L
                 </span>
               </div>
             </div>
             <button
               onClick={nextMonth}
-              className="p-2 rounded-xl bg-white/5 border border-white/[0.06] text-[#94a3b8] hover:text-white hover:border-[#ff6b2b]/20 transition-all"
+              className="p-2 rounded-xl bg-muted border border-border text-muted-foreground hover:text-foreground hover:border-[#ff6b2b]/20 transition-all"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -138,7 +138,7 @@ export default function CalendarView({ trades }: CalendarViewProps) {
           {/* Day Names */}
           <div className="grid grid-cols-7 gap-1 mb-2">
             {dayNames.map(d => (
-              <div key={d} className="text-center text-[10px] text-[#94a3b8] font-semibold uppercase tracking-wider py-2">
+              <div key={d} className="text-center text-[10px] text-muted-foreground font-semibold uppercase tracking-wider py-2">
                 {d}
               </div>
             ))}
@@ -164,11 +164,11 @@ export default function CalendarView({ trades }: CalendarViewProps) {
                       : isSelected
                         ? 'bg-[#ff6b2b]/20 border border-[#ff6b2b]/40 shadow-lg shadow-orange-500/10'
                         : hasTrades
-                          ? 'bg-white/[0.04] hover:bg-white/[0.08] border border-transparent hover:border-white/[0.08] cursor-pointer'
-                          : 'hover:bg-white/[0.02]'
+                          ? 'bg-muted hover:bg-muted/80 border border-transparent hover:border-border cursor-pointer'
+                          : 'hover:bg-muted/50'
                   } ${isToday ? 'ring-1 ring-[#ff6b2b]/30' : ''}`}
                 >
-                  <span className={`text-xs ${day.inMonth ? 'text-white' : 'text-[#94a3b8]'} font-medium`}>
+                  <span className={`text-xs ${day.inMonth ? 'text-foreground' : 'text-muted-foreground'} font-medium`}>
                     {day.day}
                   </span>
                   {hasTrades && day.inMonth && (
@@ -182,7 +182,7 @@ export default function CalendarView({ trades }: CalendarViewProps) {
                         />
                       ))}
                       {dayTrades.length > 4 && (
-                        <span className="text-[8px] text-[#94a3b8]">+</span>
+                        <span className="text-[8px] text-muted-foreground">+</span>
                       )}
                     </div>
                   )}
@@ -194,7 +194,7 @@ export default function CalendarView({ trades }: CalendarViewProps) {
 
         {/* Selected Day Details */}
         <div className="glass-card rounded-2xl p-6 h-fit">
-          <h4 className="text-sm font-semibold text-white mb-4">
+          <h4 className="text-sm font-semibold text-foreground mb-4">
             {selectedDay
               ? `Trades du ${new Date(selectedDay + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}`
               : 'Selectionnez un jour'
@@ -213,10 +213,10 @@ export default function CalendarView({ trades }: CalendarViewProps) {
                 {selectedDayTrades.map(trade => (
                   <div
                     key={trade.id}
-                    className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:border-white/[0.12] transition-colors"
+                    className="p-3 rounded-xl bg-muted border border-border hover:border-border transition-colors"
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-bold text-white">{trade.instrument}</span>
+                      <span className="text-sm font-bold text-foreground">{trade.instrument}</span>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
                         trade.direction === 'Buy'
                           ? 'bg-[#22c55e]/15 text-[#22c55e]'
@@ -226,7 +226,7 @@ export default function CalendarView({ trades }: CalendarViewProps) {
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-[#94a3b8]">{trade.strategy} · {trade.timeframe}</span>
+                      <span className="text-[10px] text-muted-foreground">{trade.strategy} · {trade.timeframe}</span>
                       <span className={`text-sm font-bold ${trade.pnl >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
                         {trade.pnl >= 0 ? '+' : ''}${trade.pnl.toLocaleString()}
                       </span>
@@ -234,9 +234,9 @@ export default function CalendarView({ trades }: CalendarViewProps) {
                   </div>
                 ))}
 
-                <div className="pt-2 border-t border-white/[0.06]">
+                <div className="pt-2 border-t border-border">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-[#94a3b8]">Total du jour</span>
+                    <span className="text-xs text-muted-foreground">Total du jour</span>
                     <span className={`text-sm font-bold ${
                       selectedDayTrades.reduce((s, t) => s + t.pnl, 0) >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]'
                     }`}>
@@ -252,7 +252,7 @@ export default function CalendarView({ trades }: CalendarViewProps) {
                 animate={{ opacity: 1 }}
                 className="text-center py-8"
               >
-                <p className="text-sm text-[#94a3b8]">Aucun trade ce jour</p>
+                <p className="text-sm text-muted-foreground">Aucun trade ce jour</p>
               </motion.div>
             ) : (
               <motion.div
@@ -263,26 +263,26 @@ export default function CalendarView({ trades }: CalendarViewProps) {
                 <div className="w-12 h-12 rounded-xl bg-[#ff6b2b]/10 flex items-center justify-center mx-auto mb-3">
                   <TrendingUp className="h-5 w-5 text-[#ff6b2b]" />
                 </div>
-                <p className="text-sm text-[#94a3b8]">Cliquez sur un jour avec des trades pour voir les details</p>
+                <p className="text-sm text-muted-foreground">Cliquez sur un jour avec des trades pour voir les details</p>
               </motion.div>
             )}
           </AnimatePresence>
 
           {/* Monthly Legend */}
-          <div className="mt-6 pt-4 border-t border-white/[0.06]">
-            <h5 className="text-[10px] text-[#94a3b8] uppercase tracking-wider font-semibold mb-3">Resume du mois</h5>
+          <div className="mt-6 pt-4 border-t border-border">
+            <h5 className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-3">Resume du mois</h5>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-3.5 w-3.5 text-[#22c55e]" />
                 <div>
-                  <p className="text-[10px] text-[#94a3b8]">Gains</p>
+                  <p className="text-[10px] text-muted-foreground">Gains</p>
                   <p className="text-sm font-bold text-[#22c55e]">{monthWins}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <TrendingDown className="h-3.5 w-3.5 text-[#ef4444]" />
                 <div>
-                  <p className="text-[10px] text-[#94a3b8]">Pertes</p>
+                  <p className="text-[10px] text-muted-foreground">Pertes</p>
                   <p className="text-sm font-bold text-[#ef4444]">{monthLosses}</p>
                 </div>
               </div>

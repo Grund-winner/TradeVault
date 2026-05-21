@@ -39,8 +39,8 @@ function EmptyState({ onAddTrade }: { onAddTrade: () => void }) {
       <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#ff6b2b]/20 to-[#ff4500]/10 border border-[#ff6b2b]/20 flex items-center justify-center mb-6">
         <TrendingUp className="h-9 w-9 text-[#ff6b2b]" />
       </div>
-      <h3 className="text-xl font-bold text-white mb-2">Bienvenue sur TradeVault</h3>
-      <p className="text-sm text-[#94a3b8] max-w-md mb-8">
+      <h3 className="text-xl font-bold text-foreground mb-2">Bienvenue sur TradeVault</h3>
+      <p className="text-sm text-muted-foreground max-w-md mb-8">
         Votre journal de trading est vide. Ajoutez votre premier trade pour commencer a suivre vos performances et analyser vos resultats.
       </p>
       <button
@@ -50,7 +50,7 @@ function EmptyState({ onAddTrade }: { onAddTrade: () => void }) {
         <Plus className="h-5 w-5" />
         Ajouter votre premier trade
       </button>
-      <div className="flex items-center gap-6 mt-10 text-[#94a3b8]/60">
+      <div className="flex items-center gap-6 mt-10 text-muted-foreground/60">
         <div className="flex items-center gap-2">
           <FileText className="h-4 w-4" />
           <span className="text-xs">Journal de trades</span>
@@ -186,12 +186,12 @@ export default function Home() {
   // Show loading state briefly
   if (!isLoaded) {
     return (
-      <div className="flex min-h-screen bg-[#0a0a0f] items-center justify-center">
+      <div className="flex min-h-screen bg-background items-center justify-center">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#ff6b2b] to-[#ff4500] flex items-center justify-center animate-pulse">
             <TrendingUp className="h-4 w-4 text-white" />
           </div>
-          <span className="text-sm text-[#94a3b8]">Chargement...</span>
+          <span className="text-sm text-muted-foreground">Chargement...</span>
         </div>
       </div>
     );
@@ -201,7 +201,7 @@ export default function Home() {
   const hasFilteredTrades = filteredTrades.length > 0;
 
   return (
-    <div className="flex min-h-screen bg-[#0a0a0f]">
+    <div className="flex min-h-screen bg-background">
       <Sidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -238,13 +238,13 @@ export default function Home() {
               animate={{ opacity: 1 }}
               className="flex flex-col items-center justify-center py-20 text-center"
             >
-              <div className="w-16 h-16 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center mb-4">
-                <svg className="h-7 w-7 text-[#94a3b8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-16 h-16 rounded-2xl bg-muted border border-border flex items-center justify-center mb-4">
+                <svg className="h-7 w-7 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-bold text-white mb-1">Aucun resultat</h3>
-              <p className="text-sm text-[#94a3b8] mb-4">Aucun trade ne correspond a vos filtres actuels.</p>
+              <h3 className="text-lg font-bold text-foreground mb-1">Aucun resultat</h3>
+              <p className="text-sm text-muted-foreground mb-4">Aucun trade ne correspond a vos filtres actuels.</p>
               <button
                 onClick={() => {
                   setFilters(defaultFilters);
@@ -282,32 +282,32 @@ export default function Home() {
                       transition={{ duration: 0.5, delay: 0.4 }}
                       className="glass-card rounded-2xl p-6"
                     >
-                      <h3 className="text-sm font-semibold text-white mb-4">Statistiques Gains / Pertes</h3>
+                      <h3 className="text-sm font-semibold text-foreground mb-4">Statistiques Gains / Pertes</h3>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
-                          <p className="text-[10px] text-[#94a3b8] uppercase tracking-wider">Gain moyen</p>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Gain moyen</p>
                           <p className="text-xl font-bold text-[#22c55e]">+{kpis.avgWinR}R</p>
-                          <p className="text-xs text-[#94a3b8]">${kpis.avgWinPnl.toLocaleString()}</p>
+                          <p className="text-xs text-muted-foreground">${kpis.avgWinPnl.toLocaleString()}</p>
                         </div>
                         <div className="space-y-1">
-                          <p className="text-[10px] text-[#94a3b8] uppercase tracking-wider">Perte moyenne</p>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Perte moyenne</p>
                           <p className="text-xl font-bold text-[#ef4444]">{kpis.avgLossR}R</p>
-                          <p className="text-xs text-[#94a3b8]">-${kpis.avgLossPnl.toLocaleString()}</p>
+                          <p className="text-xs text-muted-foreground">-${kpis.avgLossPnl.toLocaleString()}</p>
                         </div>
                         <div className="space-y-1">
-                          <p className="text-[10px] text-[#94a3b8] uppercase tracking-wider">Plus grand gain</p>
-                          <p className="text-xl font-bold text-white">+{kpis.largestWin}R</p>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Plus grand gain</p>
+                          <p className="text-xl font-bold text-foreground">+{kpis.largestWin}R</p>
                         </div>
                         <div className="space-y-1">
-                          <p className="text-[10px] text-[#94a3b8] uppercase tracking-wider">Plus grande perte</p>
-                          <p className="text-xl font-bold text-white">{kpis.largestLoss}R</p>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Plus grande perte</p>
+                          <p className="text-xl font-bold text-foreground">{kpis.largestLoss}R</p>
                         </div>
                         <div className="space-y-1">
-                          <p className="text-[10px] text-[#94a3b8] uppercase tracking-wider">Series gagnantes</p>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Series gagnantes</p>
                           <p className="text-xl font-bold text-[#ff6b2b]">{kpis.maxConsWins}</p>
                         </div>
                         <div className="space-y-1">
-                          <p className="text-[10px] text-[#94a3b8] uppercase tracking-wider">Series perdantes</p>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Series perdantes</p>
                           <p className="text-xl font-bold text-[#ff6b2b]">{kpis.maxConsLosses}</p>
                         </div>
                       </div>
@@ -318,7 +318,7 @@ export default function Home() {
                       transition={{ duration: 0.5, delay: 0.5 }}
                       className="glass-card rounded-2xl p-6"
                     >
-                      <h3 className="text-sm font-semibold text-white mb-4">Resume de Performance</h3>
+                      <h3 className="text-sm font-semibold text-foreground mb-4">Resume de Performance</h3>
                       <div className="space-y-4">
                         {[
                           { label: 'P&L Brut', value: `$${kpis.grossWins.toLocaleString()}`, sub: 'Total des gains', color: 'text-[#22c55e]' },
@@ -328,10 +328,10 @@ export default function Home() {
                           { label: 'Profit Factor', value: kpis.profitFactor === 999 ? '∞' : kpis.profitFactor.toString(), sub: kpis.profitFactor === 999 ? 'Parfait (0 perte)' : kpis.profitFactor >= 2 ? 'Excellent' : kpis.profitFactor >= 1.5 ? 'Bon' : 'A ameliorer', color: 'text-[#ff6b2b]' },
                           { label: 'Risk Reward', value: kpis.riskReward.toString(), sub: 'Ratio moyen', color: 'text-[#ff6b2b]' },
                         ].map((stat) => (
-                          <div key={stat.label} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
+                          <div key={stat.label} className="flex items-center justify-between py-2 border-b border-border last:border-0">
                             <div>
-                              <p className="text-xs text-[#94a3b8]">{stat.label}</p>
-                              <p className="text-[10px] text-[#94a3b8]/60">{stat.sub}</p>
+                              <p className="text-xs text-muted-foreground">{stat.label}</p>
+                              <p className="text-[10px] text-muted-foreground/60">{stat.sub}</p>
                             </div>
                             <p className={`text-sm font-bold ${stat.color}`}>{stat.value}</p>
                           </div>

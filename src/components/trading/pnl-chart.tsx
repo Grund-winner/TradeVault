@@ -13,7 +13,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
     const data = payload[0].payload;
     return (
       <div className="custom-tooltip">
-        <p className="text-xs text-[#94a3b8] mb-1">Trade {label}</p>
+        <p className="text-xs text-muted-foreground mb-1">Trade {label}</p>
         <p className={`text-sm font-bold ${data.pnl >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
           {data.pnl >= 0 ? '+' : ''}${data.pnl.toLocaleString()}
         </p>
@@ -38,17 +38,17 @@ export default function PnlChart({ trades }: PnlChartProps) {
     >
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-sm font-semibold text-white">P&L par Trade</h3>
-          <p className="text-xs text-[#94a3b8] mt-0.5">Performance individuelle</p>
+          <h3 className="text-sm font-semibold text-foreground">P&L par Trade</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">Performance individuelle</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
             <div className="w-2.5 h-2.5 rounded-sm bg-[#22c55e]" />
-            <span className="text-xs text-[#94a3b8]">Gain</span>
+            <span className="text-xs text-muted-foreground">Gain</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2.5 h-2.5 rounded-sm bg-[#ef4444]" />
-            <span className="text-xs text-[#94a3b8]">Perte</span>
+            <span className="text-xs text-muted-foreground">Perte</span>
           </div>
         </div>
       </div>
@@ -56,7 +56,7 @@ export default function PnlChart({ trades }: PnlChartProps) {
       <div className="h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
             <XAxis
               dataKey="trade"
               axisLine={false}

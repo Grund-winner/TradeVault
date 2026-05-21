@@ -46,8 +46,8 @@ export default function Sidebar({ activeTab, onTabChange, allTrades = [], siteNa
           <img src="/logo.png" alt={siteName} className="w-6 h-6 object-contain" />
         </div>
         <div>
-          <h1 className="text-lg font-bold text-white tracking-tight">{siteName}</h1>
-          <p className="text-[10px] text-[#94a3b8] uppercase tracking-widest">{siteSubtitle}</p>
+          <h1 className="text-lg font-bold text-sidebar-foreground tracking-tight">{siteName}</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest">{siteSubtitle}</p>
         </div>
       </div>
 
@@ -63,7 +63,7 @@ export default function Sidebar({ activeTab, onTabChange, allTrades = [], siteNa
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
               activeTab === item.id
                 ? 'sidebar-active bg-gradient-to-r from-[#ff6b2b]/15 to-transparent text-[#ff6b2b]'
-                : 'text-[#94a3b8] hover:text-white hover:bg-white/5'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
             }`}
             whileHover={{ x: 4 }}
             whileTap={{ scale: 0.98 }}
@@ -114,17 +114,17 @@ export default function Sidebar({ activeTab, onTabChange, allTrades = [], siteNa
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-full flex items-center justify-center text-[10px] text-[#94a3b8]/40">
+            <div className="h-full flex items-center justify-center text-[10px] text-muted-foreground/40">
               Aucune donnee
             </div>
           )}
         </div>
-        <p className="text-[11px] text-[#94a3b8] mt-2">{allTrades.length} trade{allTrades.length > 1 ? 's' : ''} enregistre{allTrades.length > 1 ? 's' : ''}</p>
+        <p className="text-[11px] text-muted-foreground mt-2">{allTrades.length} trade{allTrades.length > 1 ? 's' : ''} enregistre{allTrades.length > 1 ? 's' : ''}</p>
       </div>
 
       {/* Bottom branding */}
-      <div className="px-6 py-4 border-t border-white/5">
-        <p className="text-[10px] text-[#94a3b8]/60 uppercase tracking-wider">{siteName} v2.0</p>
+      <div className="px-6 py-4 border-t border-border">
+        <p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">{siteName} v2.0</p>
       </div>
     </div>
   );
@@ -132,13 +132,13 @@ export default function Sidebar({ activeTab, onTabChange, allTrades = [], siteNa
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex w-64 min-h-screen bg-[#0e0e14] border-r border-white/[0.06] flex-col">
+      <aside className="hidden lg:flex w-64 min-h-screen bg-sidebar border-r border-border flex-col">
         {sidebarContent}
       </aside>
 
       {/* Mobile hamburger */}
       <button
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-xl bg-[#111118] border border-white/10 text-white"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-xl bg-card border border-border text-foreground"
         onClick={() => setMobileOpen(!mobileOpen)}
       >
         {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -160,7 +160,7 @@ export default function Sidebar({ activeTab, onTabChange, allTrades = [], siteNa
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="lg:hidden fixed left-0 top-0 bottom-0 w-64 bg-[#0e0e14] border-r border-white/[0.06] z-50"
+              className="lg:hidden fixed left-0 top-0 bottom-0 w-64 bg-sidebar border-r border-border z-50"
             >
               {sidebarContent}
             </motion.aside>

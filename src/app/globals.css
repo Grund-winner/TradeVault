@@ -143,10 +143,15 @@
 
 /* Glass card effect */
 .glass-card {
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--card);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--border);
   transition: all 0.3s ease;
+}
+
+.dark .glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
 .glass-card:hover {
@@ -194,11 +199,12 @@
 
 /* Chart tooltip custom */
 .custom-tooltip {
-  background: #1a1a24 !important;
-  border: 1px solid rgba(255, 107, 43, 0.3) !important;
+  background: var(--popover) !important;
+  border: 1px solid var(--border) !important;
   border-radius: 8px !important;
   padding: 8px 12px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  color: var(--foreground) !important;
 }
 
 /* Number counter animation */
@@ -259,16 +265,16 @@
 
 /* Table row hover */
 .trade-row:hover {
-  background: rgba(255, 107, 43, 0.03) !important;
+  background: rgba(234, 88, 12, 0.03) !important;
 }
 
 /* Recharts custom styling */
 .recharts-cartesian-grid-horizontal line,
 .recharts-cartesian-grid-vertical line {
-  stroke: rgba(255, 255, 255, 0.04) !important;
+  stroke: var(--border) !important;
 }
 
 .recharts-text {
-  fill: #94a3b8 !important;
+  fill: var(--muted-foreground) !important;
   font-size: 11px !important;
 }

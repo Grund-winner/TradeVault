@@ -82,10 +82,10 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#111118] border border-white/[0.08] text-white max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-popover border border-border text-foreground max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-lg font-bold text-white">Ajouter un Trade</DialogTitle>
-          <DialogDescription className="text-sm text-[#94a3b8]">
+          <DialogTitle className="text-lg font-bold text-foreground">Ajouter un Trade</DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
             Enregistrez les details de votre nouvelle operation.
           </DialogDescription>
         </DialogHeader>
@@ -98,21 +98,21 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
           {/* Row 1: Date & Status */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs text-[#94a3b8] font-medium">Date</Label>
+              <Label className="text-xs text-muted-foreground font-medium">Date</Label>
               <Input
                 type="date"
                 value={date}
                 onChange={e => setDate(e.target.value)}
-                className="bg-white/5 border-white/[0.08] text-white text-sm h-10 rounded-xl"
+                className="bg-muted border-border text-foreground text-sm h-10 rounded-xl"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-[#94a3b8] font-medium">Resultat</Label>
+              <Label className="text-xs text-muted-foreground font-medium">Resultat</Label>
               <Select value={status} onValueChange={v => setStatus(v as 'Win' | 'Loss')}>
-                <SelectTrigger className="bg-white/5 border-white/[0.08] text-white text-sm h-10 rounded-xl">
+                <SelectTrigger className="bg-muted border-border text-foreground text-sm h-10 rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a1a24] border-white/[0.08]">
+                <SelectContent className="bg-popover border-border">
                   <SelectItem value="Win" className="text-[#22c55e]">Win</SelectItem>
                   <SelectItem value="Loss" className="text-[#ef4444]">Loss</SelectItem>
                 </SelectContent>
@@ -123,21 +123,21 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
           {/* Row 2: Instrument & Category */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs text-[#94a3b8] font-medium">Instrument</Label>
+              <Label className="text-xs text-muted-foreground font-medium">Instrument</Label>
               <Input
                 placeholder="ex: EUR/USD"
                 value={instrument}
                 onChange={e => setInstrument(e.target.value)}
-                className="bg-white/5 border-white/[0.08] text-white text-sm h-10 rounded-xl placeholder:text-[#94a3b8]/50"
+                className="bg-muted border-border text-foreground text-sm h-10 rounded-xl placeholder:text-muted-foreground/50"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-[#94a3b8] font-medium">Categorie</Label>
+              <Label className="text-xs text-muted-foreground font-medium">Categorie</Label>
               <Select value={category} onValueChange={v => setCategory(v as InstrumentCategory)}>
-                <SelectTrigger className="bg-white/5 border-white/[0.08] text-white text-sm h-10 rounded-xl">
+                <SelectTrigger className="bg-muted border-border text-foreground text-sm h-10 rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a1a24] border-white/[0.08]">
+                <SelectContent className="bg-popover border-border">
                   <SelectItem value="FOREX">FOREX</SelectItem>
                   <SelectItem value="COMMODITIES">COMMODITIES</SelectItem>
                   <SelectItem value="STOCKS">STOCKS</SelectItem>
@@ -149,24 +149,24 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
           {/* Row 3: Direction & Strategy */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs text-[#94a3b8] font-medium">Direction</Label>
+              <Label className="text-xs text-muted-foreground font-medium">Direction</Label>
               <Select value={direction} onValueChange={v => setDirection(v as Direction)}>
-                <SelectTrigger className="bg-white/5 border-white/[0.08] text-white text-sm h-10 rounded-xl">
+                <SelectTrigger className="bg-muted border-border text-foreground text-sm h-10 rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a1a24] border-white/[0.08]">
+                <SelectContent className="bg-popover border-border">
                   <SelectItem value="Buy">Buy</SelectItem>
                   <SelectItem value="Sell">Sell</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-[#94a3b8] font-medium">Strategie</Label>
+              <Label className="text-xs text-muted-foreground font-medium">Strategie</Label>
               <Select value={strategy} onValueChange={v => setStrategy(v as Strategy)}>
-                <SelectTrigger className="bg-white/5 border-white/[0.08] text-white text-sm h-10 rounded-xl">
+                <SelectTrigger className="bg-muted border-border text-foreground text-sm h-10 rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a1a24] border-white/[0.08]">
+                <SelectContent className="bg-popover border-border">
                   <SelectItem value="Breakout">Breakout</SelectItem>
                   <SelectItem value="Momentum">Momentum</SelectItem>
                   <SelectItem value="Mean Reversion">Mean Reversion</SelectItem>
@@ -179,36 +179,36 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
           {/* Row 4: Entry, SL, TP */}
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs text-[#94a3b8] font-medium">Entree</Label>
+              <Label className="text-xs text-muted-foreground font-medium">Entree</Label>
               <Input
                 type="number"
                 step="any"
                 placeholder="0.00"
                 value={entry}
                 onChange={e => setEntry(e.target.value)}
-                className="bg-white/5 border-white/[0.08] text-white text-sm h-10 rounded-xl placeholder:text-[#94a3b8]/50"
+                className="bg-muted border-border text-foreground text-sm h-10 rounded-xl placeholder:text-muted-foreground/50"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-[#94a3b8] font-medium">Stop Loss</Label>
+              <Label className="text-xs text-muted-foreground font-medium">Stop Loss</Label>
               <Input
                 type="number"
                 step="any"
                 placeholder="0.00"
                 value={stopLoss}
                 onChange={e => setStopLoss(e.target.value)}
-                className="bg-white/5 border-white/[0.08] text-white text-sm h-10 rounded-xl placeholder:text-[#94a3b8]/50"
+                className="bg-muted border-border text-foreground text-sm h-10 rounded-xl placeholder:text-muted-foreground/50"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-[#94a3b8] font-medium">Take Profit</Label>
+              <Label className="text-xs text-muted-foreground font-medium">Take Profit</Label>
               <Input
                 type="number"
                 step="any"
                 placeholder="0.00"
                 value={takeProfit}
                 onChange={e => setTakeProfit(e.target.value)}
-                className="bg-white/5 border-white/[0.08] text-white text-sm h-10 rounded-xl placeholder:text-[#94a3b8]/50"
+                className="bg-muted border-border text-foreground text-sm h-10 rounded-xl placeholder:text-muted-foreground/50"
               />
             </div>
           </div>
@@ -216,44 +216,44 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
           {/* Row 5: P&L, R-Multiple, Type */}
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs text-[#94a3b8] font-medium">P&L ($)</Label>
+              <Label className="text-xs text-muted-foreground font-medium">P&L ($)</Label>
               <Input
                 type="number"
                 step="any"
                 placeholder="+500"
                 value={pnl}
                 onChange={e => setPnl(e.target.value)}
-                className="bg-white/5 border-white/[0.08] text-white text-sm h-10 rounded-xl placeholder:text-[#94a3b8]/50"
+                className="bg-muted border-border text-foreground text-sm h-10 rounded-xl placeholder:text-muted-foreground/50"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-[#94a3b8] font-medium">R-Multiple</Label>
+              <Label className="text-xs text-muted-foreground font-medium">R-Multiple</Label>
               <Input
                 type="number"
                 step="0.5"
                 placeholder="1.0"
                 value={pnlR}
                 onChange={e => setPnlR(e.target.value)}
-                className="bg-white/5 border-white/[0.08] text-white text-sm h-10 rounded-xl placeholder:text-[#94a3b8]/50"
+                className="bg-muted border-border text-foreground text-sm h-10 rounded-xl placeholder:text-muted-foreground/50"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-[#94a3b8] font-medium">Type / TF</Label>
+              <Label className="text-xs text-muted-foreground font-medium">Type / TF</Label>
               <div className="flex gap-1">
                 <Select value={type} onValueChange={v => setType(v as TradeType)}>
-                  <SelectTrigger className="bg-white/5 border-white/[0.08] text-white text-xs h-10 rounded-xl flex-1">
+                  <SelectTrigger className="bg-muted border-border text-foreground text-xs h-10 rounded-xl flex-1">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1a1a24] border-white/[0.08]">
+                  <SelectContent className="bg-popover border-border">
                     <SelectItem value="Intraday">Intra</SelectItem>
                     <SelectItem value="Multiday">Multi</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={timeframe} onValueChange={v => setTimeframe(v as Timeframe)}>
-                  <SelectTrigger className="bg-white/5 border-white/[0.08] text-white text-xs h-10 rounded-xl w-16">
+                  <SelectTrigger className="bg-muted border-border text-foreground text-xs h-10 rounded-xl w-16">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1a1a24] border-white/[0.08]">
+                  <SelectContent className="bg-popover border-border">
                     <SelectItem value="M1">M1</SelectItem>
                     <SelectItem value="M5">M5</SelectItem>
                     <SelectItem value="M15">M15</SelectItem>
@@ -271,24 +271,24 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
 
           {/* Row 6: Notes */}
           <div className="space-y-1.5">
-            <Label className="text-xs text-[#94a3b8] font-medium">Notes</Label>
+            <Label className="text-xs text-muted-foreground font-medium">Notes</Label>
             <textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
               placeholder="Raisons du trade, observations, emotions..."
               rows={3}
-              className="w-full bg-white/5 border-white/[0.08] text-white text-sm rounded-xl px-3 py-2 placeholder:text-[#94a3b8]/50 resize-none focus:border-[#ff6b2b]/40 focus:ring-[#ff6b2b]/20 outline-none"
+              className="w-full bg-muted border-border text-foreground text-sm rounded-xl px-3 py-2 placeholder:text-muted-foreground/50 resize-none focus:border-[#ff6b2b]/40 focus:ring-[#ff6b2b]/20 outline-none"
             />
           </div>
 
           {/* Row 7: Tags */}
           <div className="space-y-1.5">
-            <Label className="text-xs text-[#94a3b8] font-medium">Tags</Label>
+            <Label className="text-xs text-muted-foreground font-medium">Tags</Label>
             <Input
               placeholder="scalp, news, breakout... (separes par des virgules)"
               value={tags}
               onChange={e => setTags(e.target.value)}
-              className="bg-white/5 border-white/[0.08] text-white text-sm h-10 rounded-xl placeholder:text-[#94a3b8]/50"
+              className="bg-muted border-border text-foreground text-sm h-10 rounded-xl placeholder:text-muted-foreground/50"
             />
           </div>
 
@@ -297,7 +297,7 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
             <Button
               variant="ghost"
               onClick={() => onOpenChange(false)}
-              className="flex-1 h-10 rounded-xl text-[#94a3b8] hover:text-white hover:bg-white/5"
+              className="flex-1 h-10 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted"
             >
               Annuler
             </Button>

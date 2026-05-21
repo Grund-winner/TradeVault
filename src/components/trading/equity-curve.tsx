@@ -12,7 +12,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
   if (active && payload && payload.length) {
     return (
       <div className="custom-tooltip">
-        <p className="text-xs text-[#94a3b8] mb-1">Trade {label}</p>
+        <p className="text-xs text-muted-foreground mb-1">Trade {label}</p>
         <p className={`text-sm font-bold ${payload[0].value >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
           ${payload[0].value.toLocaleString()}
         </p>
@@ -34,12 +34,12 @@ export default function EquityCurve({ trades }: EquityCurveProps) {
     >
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-sm font-semibold text-white">Courbe de rendement</h3>
-          <p className="text-xs text-[#94a3b8] mt-0.5">P&L cumulé par trade</p>
+          <h3 className="text-sm font-semibold text-foreground">Courbe de rendement</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">P&L cumulé par trade</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-2.5 h-2.5 rounded-full bg-[#ff6b2b]" />
-          <span className="text-xs text-[#94a3b8]">Cumulatif</span>
+          <span className="text-xs text-muted-foreground">Cumulatif</span>
         </div>
       </div>
 
@@ -53,7 +53,7 @@ export default function EquityCurve({ trades }: EquityCurveProps) {
                 <stop offset="100%" stopColor="#ff6b2b" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
             <XAxis
               dataKey="trade"
               axisLine={false}

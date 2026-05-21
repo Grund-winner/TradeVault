@@ -78,19 +78,19 @@ function FilterSelect({
 }) {
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      <span className="text-[10px] uppercase tracking-wider text-[#94a3b8] font-semibold whitespace-nowrap">
+      <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold whitespace-nowrap">
         {label}
       </span>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="w-[130px] h-9 text-xs font-medium bg-white/5 border-white/[0.08] text-white hover:bg-white/[0.08] hover:border-white/[0.15] focus:border-[#ff6b2b]/40 focus:ring-[#ff6b2b]/20 rounded-xl transition-all">
+        <SelectTrigger className="w-[130px] h-9 text-xs font-medium bg-muted border-border text-foreground hover:bg-muted/80 hover:border-border focus:border-[#ff6b2b]/40 focus:ring-[#ff6b2b]/20 rounded-xl transition-all">
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent className="bg-[#1a1a24] border-white/[0.1] rounded-xl">
+        <SelectContent className="bg-popover border-border rounded-xl">
           {options.map(opt => (
             <SelectItem
               key={opt.value}
               value={opt.value}
-              className="text-xs text-white hover:bg-white/[0.06] rounded-lg cursor-pointer focus:bg-white/[0.06] focus:text-[#ff6b2b]"
+              className="text-xs text-foreground hover:bg-muted rounded-lg cursor-pointer focus:bg-muted focus:text-[#ff6b2b]"
             >
               {opt.label}
             </SelectItem>
@@ -156,8 +156,8 @@ export default function FiltersBar({ filters, onFiltersChange, trades, searchQue
     >
       {/* Search Bar */}
       <div className="flex items-center gap-3 mb-4">
-        <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] focus-within:border-[#ff6b2b]/30 transition-colors">
-          <svg className="h-4 w-4 text-[#94a3b8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-xl bg-muted border border-border focus-within:border-[#ff6b2b]/30 transition-colors">
+          <svg className="h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
@@ -165,10 +165,10 @@ export default function FiltersBar({ filters, onFiltersChange, trades, searchQue
             value={searchQuery}
             onChange={e => onSearchChange(e.target.value)}
             placeholder="Rechercher un instrument, strategie, date..."
-            className="bg-transparent border-none outline-none text-sm text-white placeholder:text-[#94a3b8]/50 w-full"
+            className="bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground/50 w-full"
           />
           {searchQuery && (
-            <button onClick={() => onSearchChange('')} className="text-[#94a3b8] hover:text-white transition-colors">
+            <button onClick={() => onSearchChange('')} className="text-muted-foreground hover:text-foreground transition-colors">
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -178,7 +178,7 @@ export default function FiltersBar({ filters, onFiltersChange, trades, searchQue
         {activeFilterCount > 0 && (
           <button
             onClick={resetAll}
-            className="px-3 py-2 rounded-xl text-xs font-medium text-[#94a3b8] hover:text-white bg-white/[0.04] border border-white/[0.08] hover:border-[#ef4444]/30 hover:text-[#ef4444] transition-all whitespace-nowrap"
+            className="px-3 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground bg-muted border border-border hover:border-[#ef4444]/30 hover:text-[#ef4444] transition-all whitespace-nowrap"
           >
             Reinitialiser ({activeFilterCount})
           </button>

@@ -26,7 +26,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
   if (active && payload && payload.length) {
     return (
       <div className="custom-tooltip">
-        <p className="text-xs text-[#94a3b8] mb-1">{label}</p>
+        <p className="text-xs text-muted-foreground mb-1">{label}</p>
         {payload.map((entry, i) => (
           <p key={i} className="text-sm font-bold" style={{ color: entry.color || '#fff' }}>
             {entry.name}: {entry.value}
@@ -64,7 +64,7 @@ export default function DetailedAnalysis({ trades }: DetailedAnalysisProps) {
   });
 
   const getHeatColor = (value: number | undefined) => {
-    if (value === undefined) return 'bg-white/[0.03]';
+    if (value === undefined) return 'bg-muted';
     if (value > 3000) return 'bg-[#22c55e]/60';
     if (value > 1000) return 'bg-[#22c55e]/35';
     if (value > 0) return 'bg-[#22c55e]/18';
@@ -85,8 +85,8 @@ export default function DetailedAnalysis({ trades }: DetailedAnalysisProps) {
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
       {/* Header */}
       <motion.div variants={item}>
-        <h3 className="text-lg font-bold text-white">Analyse Detaillee</h3>
-        <p className="text-xs text-[#94a3b8] mt-0.5">Decoupage complet de vos performances par categorie</p>
+        <h3 className="text-lg font-bold text-foreground">Analyse Detaillee</h3>
+        <p className="text-xs text-muted-foreground mt-0.5">Decoupage complet de vos performances par categorie</p>
       </motion.div>
 
       {/* Top Stats Row */}
@@ -94,34 +94,34 @@ export default function DetailedAnalysis({ trades }: DetailedAnalysisProps) {
         <div className="glass-card rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="h-4 w-4 text-[#22c55e]" />
-            <span className="text-xs text-[#94a3b8]">Meilleur mois</span>
+            <span className="text-xs text-muted-foreground">Meilleur mois</span>
           </div>
           <p className="text-lg font-bold text-[#22c55e]">{bestMonth ? `+$${bestMonth.pnl.toLocaleString()}` : 'N/A'}</p>
-          <p className="text-[10px] text-[#94a3b8] mt-1">{bestMonth?.label || 'Aucune donnee'}</p>
+          <p className="text-[10px] text-muted-foreground mt-1">{bestMonth?.label || 'Aucune donnee'}</p>
         </div>
         <div className="glass-card rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-2">
             <TrendingDown className="h-4 w-4 text-[#ef4444]" />
-            <span className="text-xs text-[#94a3b8]">Pire mois</span>
+            <span className="text-xs text-muted-foreground">Pire mois</span>
           </div>
           <p className="text-lg font-bold text-[#ef4444]">{worstMonth ? `$${worstMonth.pnl.toLocaleString()}` : '$0'}</p>
-          <p className="text-[10px] text-[#94a3b8] mt-1">{worstMonth?.label || 'Aucune perte'}</p>
+          <p className="text-[10px] text-muted-foreground mt-1">{worstMonth?.label || 'Aucune perte'}</p>
         </div>
         <div className="glass-card rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-2">
             <Award className="h-4 w-4 text-[#ff6b2b]" />
-            <span className="text-xs text-[#94a3b8]">Max Gain</span>
+            <span className="text-xs text-muted-foreground">Max Gain</span>
           </div>
-          <p className="text-lg font-bold text-white">+{kpis.largestWin}R</p>
-          <p className="text-[10px] text-[#94a3b8] mt-1">Meilleur trade</p>
+          <p className="text-lg font-bold text-foreground">+{kpis.largestWin}R</p>
+          <p className="text-[10px] text-muted-foreground mt-1">Meilleur trade</p>
         </div>
         <div className="glass-card rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-2">
             <Zap className="h-4 w-4 text-[#f59e0b]" />
-            <span className="text-xs text-[#94a3b8]">Max Perte</span>
+            <span className="text-xs text-muted-foreground">Max Perte</span>
           </div>
-          <p className="text-lg font-bold text-white">{kpis.largestLoss}R</p>
-          <p className="text-[10px] text-[#94a3b8] mt-1">Pire trade</p>
+          <p className="text-lg font-bold text-foreground">{kpis.largestLoss}R</p>
+          <p className="text-[10px] text-muted-foreground mt-1">Pire trade</p>
         </div>
       </motion.div>
 
@@ -131,12 +131,12 @@ export default function DetailedAnalysis({ trades }: DetailedAnalysisProps) {
         <motion.div variants={item} className="glass-card rounded-2xl p-6">
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 className="h-4 w-4 text-[#ff6b2b]" />
-            <h4 className="text-sm font-semibold text-white">Performance par Strategie</h4>
+            <h4 className="text-sm font-semibold text-foreground">Performance par Strategie</h4>
           </div>
           <div className="h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={strategyData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis dataKey="strategy" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10 }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10 }} />
                 <Tooltip content={<CustomTooltip />} />
@@ -151,7 +151,7 @@ export default function DetailedAnalysis({ trades }: DetailedAnalysisProps) {
         <motion.div variants={item} className="glass-card rounded-2xl p-6">
           <div className="flex items-center gap-2 mb-4">
             <Target className="h-4 w-4 text-[#ff6b2b]" />
-            <h4 className="text-sm font-semibold text-white">Repartition par Instrument</h4>
+            <h4 className="text-sm font-semibold text-foreground">Repartition par Instrument</h4>
           </div>
           <div className="h-[260px] flex items-center">
             <div className="w-1/2">
@@ -180,10 +180,10 @@ export default function DetailedAnalysis({ trades }: DetailedAnalysisProps) {
                 <div key={d.category} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                    <span className="text-xs text-[#94a3b8]">{d.category}</span>
+                    <span className="text-xs text-muted-foreground">{d.category}</span>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs font-bold text-white">{d.total} trades</p>
+                    <p className="text-xs font-bold text-foreground">{d.total} trades</p>
                     <p className={`text-[10px] font-medium ${d.pnl >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
                       {d.pnl >= 0 ? '+' : ''}${d.pnl.toLocaleString()}
                     </p>
@@ -201,7 +201,7 @@ export default function DetailedAnalysis({ trades }: DetailedAnalysisProps) {
         <motion.div variants={item} className="glass-card rounded-2xl p-6">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="h-4 w-4 text-[#ff6b2b]" />
-            <h4 className="text-sm font-semibold text-white">Buy vs Sell</h4>
+            <h4 className="text-sm font-semibold text-foreground">Buy vs Sell</h4>
           </div>
           <div className="space-y-4">
             {directionData.map(d => (
@@ -215,24 +215,24 @@ export default function DetailedAnalysis({ trades }: DetailedAnalysisProps) {
                     }`}>
                       {d.direction}
                     </span>
-                    <span className="text-xs text-[#94a3b8]">{d.total} trades</span>
+                    <span className="text-xs text-muted-foreground">{d.total} trades</span>
                   </div>
                   <span className={`text-sm font-bold ${d.pnl >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
                     {d.pnl >= 0 ? '+' : ''}${d.pnl.toLocaleString()}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="flex-1 h-2 rounded-full bg-white/5 overflow-hidden">
+                  <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-700 ${d.direction === 'Buy' ? 'bg-gradient-to-r from-[#22c55e] to-[#4ade80]' : 'bg-gradient-to-r from-[#ef4444] to-[#f87171]'}`}
                       style={{ width: `${d.winRate}%` }}
                     />
                   </div>
-                  <span className="text-xs font-bold text-white min-w-[36px] text-right">{d.winRate}%</span>
+                  <span className="text-xs font-bold text-foreground min-w-[36px] text-right">{d.winRate}%</span>
                 </div>
-                <div className="flex gap-4 text-[10px] text-[#94a3b8]">
-                  <span>Gains moyens: <span className="text-white font-medium">{(d.totalR > 0 ? '+' : '')}{(d.totalR / Math.max(d.total, 1)).toFixed(1)}R</span></span>
-                  <span>Win Rate: <span className="text-white font-medium">{d.winRate}%</span></span>
+                <div className="flex gap-4 text-[10px] text-muted-foreground">
+                  <span>Gains moyens: <span className="text-foreground font-medium">{(d.totalR > 0 ? '+' : '')}{(d.totalR / Math.max(d.total, 1)).toFixed(1)}R</span></span>
+                  <span>Win Rate: <span className="text-foreground font-medium">{d.winRate}%</span></span>
                 </div>
               </div>
             ))}
@@ -243,11 +243,11 @@ export default function DetailedAnalysis({ trades }: DetailedAnalysisProps) {
         <motion.div variants={item} className="glass-card rounded-2xl p-6">
           <div className="flex items-center gap-2 mb-4">
             <Zap className="h-4 w-4 text-[#ff6b2b]" />
-            <h4 className="text-sm font-semibold text-white">Analyse par Timeframe</h4>
+            <h4 className="text-sm font-semibold text-foreground">Analyse par Timeframe</h4>
           </div>
           <div className="space-y-3">
             {timeframeData.map((tf, i) => (
-              <div key={tf.timeframe} className="flex items-center gap-4 p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
+              <div key={tf.timeframe} className="flex items-center gap-4 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold" style={{
                   backgroundColor: `${COLORS[i % COLORS.length]}20`,
                   color: COLORS[i % COLORS.length],
@@ -256,12 +256,12 @@ export default function DetailedAnalysis({ trades }: DetailedAnalysisProps) {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-white font-medium">{tf.total} trades</span>
+                    <span className="text-xs text-foreground font-medium">{tf.total} trades</span>
                     <span className={`text-xs font-bold ${tf.pnl >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
                       {tf.pnl >= 0 ? '+' : ''}${tf.pnl.toLocaleString()}
                     </span>
                   </div>
-                  <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                  <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                     <div
                       className="h-full rounded-full bg-[#ff6b2b] transition-all duration-700"
                       style={{ width: `${tf.winRate}%` }}
@@ -279,7 +279,7 @@ export default function DetailedAnalysis({ trades }: DetailedAnalysisProps) {
       <motion.div variants={item} className="glass-card rounded-2xl p-6">
         <div className="flex items-center gap-2 mb-4">
           <Award className="h-4 w-4 text-[#ff6b2b]" />
-          <h4 className="text-sm font-semibold text-white">Calendrier de Performance</h4>
+          <h4 className="text-sm font-semibold text-foreground">Calendrier de Performance</h4>
         </div>
         <div className="grid grid-cols-12 gap-1.5">
           {allMonths.map(month => {
@@ -289,7 +289,7 @@ export default function DetailedAnalysis({ trades }: DetailedAnalysisProps) {
                 key={month}
                 className={`heatmap-cell aspect-square rounded-lg flex flex-col items-center justify-center cursor-default ${getHeatColor(pnl)}`}
               >
-                <span className="text-[10px] text-[#94a3b8] font-medium">{month}</span>
+                <span className="text-[10px] text-muted-foreground font-medium">{month}</span>
                 {pnl !== undefined && (
                   <span className={`text-[10px] font-bold mt-0.5 ${pnl >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
                     {pnl >= 0 ? '+' : ''}${(pnl / 1000).toFixed(1)}k
@@ -302,15 +302,15 @@ export default function DetailedAnalysis({ trades }: DetailedAnalysisProps) {
         <div className="flex items-center gap-4 mt-3 justify-center">
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded bg-[#ef4444]/40" />
-            <span className="text-[10px] text-[#94a3b8]">Perte</span>
+            <span className="text-[10px] text-muted-foreground">Perte</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded bg-[#22c55e]/18" />
-            <span className="text-[10px] text-[#94a3b8]">Petit gain</span>
+            <span className="text-[10px] text-muted-foreground">Petit gain</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded bg-[#22c55e]/60" />
-            <span className="text-[10px] text-[#94a3b8]">Fort gain</span>
+            <span className="text-[10px] text-muted-foreground">Fort gain</span>
           </div>
         </div>
       </motion.div>
@@ -318,19 +318,19 @@ export default function DetailedAnalysis({ trades }: DetailedAnalysisProps) {
       {/* Win/Loss Stats */}
       <motion.div variants={item} className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <div className="glass-card rounded-2xl p-5 text-center">
-          <p className="text-[10px] text-[#94a3b8] uppercase tracking-wider mb-2">Gain moyen</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Gain moyen</p>
           <p className="text-2xl font-bold text-[#22c55e]">+{kpis.avgWinR}R</p>
-          <p className="text-xs text-[#94a3b8] mt-1">${kpis.avgWinPnl.toLocaleString()}</p>
+          <p className="text-xs text-muted-foreground mt-1">${kpis.avgWinPnl.toLocaleString()}</p>
         </div>
         <div className="glass-card rounded-2xl p-5 text-center">
-          <p className="text-[10px] text-[#94a3b8] uppercase tracking-wider mb-2">Perte moyenne</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Perte moyenne</p>
           <p className="text-2xl font-bold text-[#ef4444]">{kpis.avgLossR}R</p>
-          <p className="text-xs text-[#94a3b8] mt-1">-${kpis.avgLossPnl.toLocaleString()}</p>
+          <p className="text-xs text-muted-foreground mt-1">-${kpis.avgLossPnl.toLocaleString()}</p>
         </div>
         <div className="glass-card rounded-2xl p-5 text-center col-span-2 md:col-span-1">
-          <p className="text-[10px] text-[#94a3b8] uppercase tracking-wider mb-2">Series gagnantes</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Series gagnantes</p>
           <p className="text-2xl font-bold text-[#ff6b2b]">{kpis.maxConsWins}</p>
-          <p className="text-xs text-[#94a3b8] mt-1">Max consecutive</p>
+          <p className="text-xs text-muted-foreground mt-1">Max consecutive</p>
         </div>
       </motion.div>
     </motion.div>
