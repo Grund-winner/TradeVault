@@ -39,7 +39,8 @@ export async function GET() {
     return NextResponse.json(formatted);
   } catch (error) {
     console.error('Error fetching trades:', error);
-    return NextResponse.json({ error: 'Failed to fetch trades' }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'Failed to fetch trades', details: msg }, { status: 500 });
   }
 }
 
@@ -98,7 +99,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(formatted, { status: 201 });
   } catch (error) {
     console.error('Error creating trade:', error);
-    return NextResponse.json({ error: 'Failed to create trade' }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ error: 'Failed to create trade', details: msg }, { status: 500 });
   }
 }
 
