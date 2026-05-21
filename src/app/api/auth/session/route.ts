@@ -1,23 +1,11 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { ensureDatabase } from '@/lib/db';
+import { getCurrentUser } from '@/lib/auth';
 
 export async function GET() {
   try {
-    await ensureDatabase();
+    const user = await getCurrentUser();
 
-    const users = await db.$queryRawUnsafe<Array<{
-      id: string;
-      email: string;
-      siteName: string;
-      siteSubtitle: string;
-      theme: string;
-    }>>(
-      `SELECT id, email, "siteName", "siteSubtitle", theme FROM users LIMIT 1`
-    );
-
-    if (users.length === 0) {
-      // No user registered yet — return defaults
+    if (!user) {
       return NextResponse.json({
         exists: false,
         siteName: 'TradeVault',
@@ -26,12 +14,12 @@ export async function GET() {
       });
     }
 
-    const user = users[0];
     return NextResponse.json({
       exists: true,
       siteName: user.siteName,
       siteSubtitle: user.siteSubtitle,
       theme: user.theme,
+      email: user.email,
     });
   } catch (error) {
     console.error('[TradeVault] Session error:', error);

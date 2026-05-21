@@ -20,7 +20,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find user by email
     const users = await db.$queryRawUnsafe<Array<{
       id: string;
       email: string;
@@ -52,8 +51,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create session token
     const sessionToken = createHash('sha256').update(user.id + Date.now() + '_session').digest('hex');
+
+    // Store session token in database
+    await db.$executeRawUnsafe(
+      `UPDATE users SET "sessionToken" = $1 WHERE id = $2`,
+      sessionToken,
+      user.id
+    );
 
     const { password: _, ...userWithoutPassword } = user;
 
@@ -64,9 +69,9 @@ export async function POST(request: NextRequest) {
 
     response.cookies.set('tv_session', sessionToken, {
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
+      maxAge: 60 * 60 * 24 * 30,
       path: '/',
     });
 

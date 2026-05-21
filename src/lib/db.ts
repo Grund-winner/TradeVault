@@ -61,6 +61,18 @@ export async function ensureDatabase() {
     console.error('[TradeVault] Failed to create trades table:', error)
   }
 
+  // Add userId column to trades if missing
+  try {
+    await client.$executeRawUnsafe(`
+      DO $$ BEGIN
+        ALTER TABLE trades ADD COLUMN IF NOT EXISTS "userId" TEXT DEFAULT '';
+      EXCEPTION WHEN OTHERS THEN NULL;
+      END $$;
+    `)
+  } catch (error) {
+    console.error('[TradeVault] Failed to add userId column:', error)
+  }
+
   try {
     await client.$executeRawUnsafe(`
       CREATE TABLE IF NOT EXISTS users (
@@ -77,5 +89,17 @@ export async function ensureDatabase() {
     console.log('[TradeVault] users table ready')
   } catch (error) {
     console.error('[TradeVault] Failed to create users table:', error)
+  }
+
+  // Add sessionToken column if missing
+  try {
+    await client.$executeRawUnsafe(`
+      DO $$ BEGIN
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS "sessionToken" TEXT;
+      EXCEPTION WHEN OTHERS THEN NULL;
+      END $$;
+    `)
+  } catch (error) {
+    console.error('[TradeVault] Failed to add sessionToken column:', error)
   }
 }

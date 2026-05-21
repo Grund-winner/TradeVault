@@ -25,6 +25,7 @@ model Trade {
   timeframe   String
   notes       String?  @db.Text
   tags        String?
+  userId      String?  @default("") @map("userId")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -32,14 +33,15 @@ model Trade {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
+  id            String    @id @default(cuid())
+  email         String    @unique
   password      String
-  siteName      String   @default("TradeVault")
-  siteSubtitle  String   @default("Analytics Pro")
-  theme         String   @default("dark")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  siteName      String    @default("TradeVault")
+  siteSubtitle  String    @default("Analytics Pro")
+  theme         String    @default("dark")
+  sessionToken  String?   @map("sessionToken")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@map("users")
 }

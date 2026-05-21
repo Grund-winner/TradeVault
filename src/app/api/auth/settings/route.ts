@@ -1,14 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { ensureDatabase } from '@/lib/db';
+import { db, ensureDatabase } from '@/lib/db';
+import { getCurrentUser } from '@/lib/auth';
 
 export async function PUT(request: NextRequest) {
   try {
     await ensureDatabase();
+    const currentUser = await getCurrentUser();
+
+    if (!currentUser) {
+      return NextResponse.json(
+        { error: 'Non authentifie' },
+        { status: 401 }
+      );
+    }
 
     const { siteName, siteSubtitle, theme } = await request.json();
 
-    // Validate inputs
     const updates: string[] = [];
     const values: unknown[] = [];
     let paramIndex = 1;
@@ -40,7 +47,8 @@ export async function PUT(request: NextRequest) {
 
     updates.push(`"updatedAt" = NOW()`);
 
-    const query = `UPDATE users SET ${updates.join(', ')} WHERE id = (SELECT id FROM users LIMIT 1) RETURNING id, email, "siteName", "siteSubtitle", theme`;
+    const query = `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING id, email, "siteName", "siteSubtitle", theme`;
+    values.push(currentUser.id);
 
     const result = await db.$queryRawUnsafe<Array<Record<string, unknown>>>(query, ...values);
 

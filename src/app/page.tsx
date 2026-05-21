@@ -86,6 +86,12 @@ export default function Home() {
         const data = await res.json();
         if (data.siteName) setSiteName(data.siteName);
         if (data.siteSubtitle) setSiteSubtitle(data.siteSubtitle);
+        // Apply theme from saved settings
+        if (data.theme === 'light') {
+          document.documentElement.classList.remove('dark');
+        } else {
+          document.documentElement.classList.add('dark');
+        }
       }
     } catch {
       // Use defaults
@@ -163,6 +169,12 @@ export default function Home() {
   const handleSettingsSaved = (settings: { siteName: string; siteSubtitle: string; theme: string }) => {
     setSiteName(settings.siteName);
     setSiteSubtitle(settings.siteSubtitle);
+    // Apply theme immediately
+    if (settings.theme === 'light') {
+      document.documentElement.classList.remove('dark');
+    } else {
+      document.documentElement.classList.add('dark');
+    }
   };
 
   const pageVariants = {

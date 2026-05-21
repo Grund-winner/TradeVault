@@ -42,16 +42,18 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await hashPassword(password);
     const userId = `user_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+    const sessionToken = createHash('sha256').update(userId + Date.now() + '_session').digest('hex');
 
     await db.$executeRawUnsafe(
-      `INSERT INTO users (id, email, password, "siteName", "siteSubtitle", theme, "createdAt", "updatedAt")
-       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())`,
+      `INSERT INTO users (id, email, password, "siteName", "siteSubtitle", theme, "sessionToken", "createdAt", "updatedAt")
+       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())`,
       userId,
       email.toLowerCase().trim(),
       hashedPassword,
       'TradeVault',
       'Analytics Pro',
-      'dark'
+      'dark',
+      sessionToken
     );
 
     const users = await db.$queryRawUnsafe<Array<Record<string, unknown>>>(
@@ -61,9 +63,6 @@ export async function POST(request: NextRequest) {
 
     const user = users[0];
 
-    // Create session token
-    const sessionToken = createHash('sha256').update(userId + Date.now() + '_session').digest('hex');
-
     const response = NextResponse.json(
       { user, token: sessionToken },
       { status: 201 }
@@ -71,9 +70,9 @@ export async function POST(request: NextRequest) {
 
     response.cookies.set('tv_session', sessionToken, {
       httpOnly: true,
-      secure: false,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
+      maxAge: 60 * 60 * 24 * 30,
       path: '/',
     });
 
