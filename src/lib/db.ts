@@ -61,7 +61,21 @@ export async function ensureDatabase() {
     console.error('[TradeVault] Failed to create trades table:', error)
   }
 
-  // Add userId column to trades if missing
+  // Add missing columns to trades table (table may have been created without them)
+  const missingTradeColumns = ['notes TEXT', 'tags TEXT'];
+  for (const colDef of missingTradeColumns) {
+    try {
+      await client.$executeRawUnsafe(`
+        DO $$ BEGIN
+          ALTER TABLE trades ADD COLUMN IF NOT EXISTS ${colDef};
+        EXCEPTION WHEN OTHERS THEN NULL;
+        END $$;
+      `)
+    } catch (error) {
+      console.error(`[TradeVault] Failed to add column to trades:`, error)
+    }
+  }
+  // userId needs separate handling due to quoting
   try {
     await client.$executeRawUnsafe(`
       DO $$ BEGIN
