@@ -12,6 +12,8 @@ interface SidebarProps {
   activeTab: TabId;
   onTabChange: (tab: TabId) => void;
   allTrades?: Trade[];
+  siteName?: string;
+  siteSubtitle?: string;
 }
 
 const navItems: { id: TabId; label: string; icon: React.ReactNode }[] = [
@@ -21,7 +23,7 @@ const navItems: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'calendar', label: 'Calendrier', icon: <CalendarDays className="h-5 w-5" /> },
 ];
 
-export default function Sidebar({ activeTab, onTabChange, allTrades = [] }: SidebarProps) {
+export default function Sidebar({ activeTab, onTabChange, allTrades = [], siteName = 'TradeVault', siteSubtitle = 'Analytics Pro' }: SidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const sparklineData = useMemo(() => {
@@ -41,11 +43,11 @@ export default function Sidebar({ activeTab, onTabChange, allTrades = [] }: Side
       {/* Logo */}
       <div className="flex items-center gap-3 px-6 py-6">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#ff6b2b] to-[#ff4500] flex items-center justify-center shadow-lg shadow-orange-500/20">
-          <img src="/logo.png" alt="TradeVault" className="w-6 h-6 object-contain" />
+          <img src="/logo.png" alt={siteName} className="w-6 h-6 object-contain" />
         </div>
         <div>
-          <h1 className="text-lg font-bold text-white tracking-tight">TradeVault</h1>
-          <p className="text-[10px] text-[#94a3b8] uppercase tracking-widest">Analytics Pro</p>
+          <h1 className="text-lg font-bold text-white tracking-tight">{siteName}</h1>
+          <p className="text-[10px] text-[#94a3b8] uppercase tracking-widest">{siteSubtitle}</p>
         </div>
       </div>
 
@@ -84,15 +86,13 @@ export default function Sidebar({ activeTab, onTabChange, allTrades = [] }: Side
 
       {/* Mini equity curve */}
       <div className="px-4 py-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="h-3.5 w-3.5 text-[#ff6b2b]" />
-            <span className="text-xs text-[#94a3b8] font-medium">P&L cumule</span>
-          </div>
-          <span className={`text-sm font-bold ${totalPnl >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
-            {totalPnl >= 0 ? '+' : ''}{totalPnl.toLocaleString()}$
-          </span>
+        <div className="flex items-center gap-2 mb-1">
+          <TrendingUp className="h-3.5 w-3.5 text-[#ff6b2b]" />
+          <span className="text-xs text-[#94a3b8] font-medium">P&L cumule</span>
         </div>
+        <p className={`text-lg font-bold mb-3 ${totalPnl >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
+          {totalPnl >= 0 ? '+' : ''}{totalPnl.toLocaleString()}$
+        </p>
         <div className="h-12 rounded-lg overflow-hidden">
           {sparklineData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
@@ -124,7 +124,7 @@ export default function Sidebar({ activeTab, onTabChange, allTrades = [] }: Side
 
       {/* Bottom branding */}
       <div className="px-6 py-4 border-t border-white/5">
-        <p className="text-[10px] text-[#94a3b8]/60 uppercase tracking-wider">TradeVault v2.0</p>
+        <p className="text-[10px] text-[#94a3b8]/60 uppercase tracking-wider">{siteName} v2.0</p>
       </div>
     </div>
   );

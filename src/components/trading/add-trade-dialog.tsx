@@ -40,7 +40,9 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
   const [status, setStatus] = useState<'Win' | 'Loss'>('Win');
   const [strategy, setStrategy] = useState<Strategy>('Breakout');
   const [type, setType] = useState<TradeType>('Intraday');
-  const [timeframe, setTimeframe] = useState<Timeframe>('1h');
+  const [timeframe, setTimeframe] = useState<Timeframe>('H1');
+  const [notes, setNotes] = useState('');
+  const [tags, setTags] = useState('');
 
   const handleSubmit = () => {
     if (!instrument || !entry || !stopLoss || !takeProfit || !pnl) return;
@@ -60,6 +62,8 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
       strategy,
       type,
       timeframe,
+      notes: notes || undefined,
+      tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : undefined,
     };
 
     onAdd(trade);
@@ -72,6 +76,8 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
     setTakeProfit('');
     setPnl('');
     setPnlR('');
+    setNotes('');
+    setTags('');
   };
 
   return (
@@ -248,13 +254,42 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-[#1a1a24] border-white/[0.08]">
-                    <SelectItem value="1h">1h</SelectItem>
-                    <SelectItem value="2h">2h</SelectItem>
-                    <SelectItem value="4h">4h</SelectItem>
+                    <SelectItem value="M1">M1</SelectItem>
+                    <SelectItem value="M5">M5</SelectItem>
+                    <SelectItem value="M15">M15</SelectItem>
+                    <SelectItem value="M30">M30</SelectItem>
+                    <SelectItem value="H1">H1</SelectItem>
+                    <SelectItem value="H4">H4</SelectItem>
+                    <SelectItem value="D1">D1</SelectItem>
+                    <SelectItem value="W1">W1</SelectItem>
+                    <SelectItem value="MN">MN</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
+          </div>
+
+          {/* Row 6: Notes */}
+          <div className="space-y-1.5">
+            <Label className="text-xs text-[#94a3b8] font-medium">Notes</Label>
+            <textarea
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder="Raisons du trade, observations, emotions..."
+              rows={3}
+              className="w-full bg-white/5 border-white/[0.08] text-white text-sm rounded-xl px-3 py-2 placeholder:text-[#94a3b8]/50 resize-none focus:border-[#ff6b2b]/40 focus:ring-[#ff6b2b]/20 outline-none"
+            />
+          </div>
+
+          {/* Row 7: Tags */}
+          <div className="space-y-1.5">
+            <Label className="text-xs text-[#94a3b8] font-medium">Tags</Label>
+            <Input
+              placeholder="scalp, news, breakout... (separes par des virgules)"
+              value={tags}
+              onChange={e => setTags(e.target.value)}
+              className="bg-white/5 border-white/[0.08] text-white text-sm h-10 rounded-xl placeholder:text-[#94a3b8]/50"
+            />
           </div>
 
           {/* Submit */}

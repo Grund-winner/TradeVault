@@ -24,6 +24,8 @@ export async function GET() {
       strategy: t.strategy,
       type: t.type,
       timeframe: t.timeframe,
+      notes: t.notes || undefined,
+      tags: t.tags ? t.tags.split(',').filter(Boolean) : undefined,
     }));
 
     return NextResponse.json(formatted);
@@ -54,6 +56,8 @@ export async function POST(request: NextRequest) {
         strategy: body.strategy,
         type: body.type,
         timeframe: body.timeframe,
+        notes: body.notes || null,
+        tags: body.tags ? (Array.isArray(body.tags) ? body.tags.join(',') : body.tags) : null,
       },
     });
 
@@ -72,6 +76,8 @@ export async function POST(request: NextRequest) {
       strategy: trade.strategy,
       type: trade.type,
       timeframe: trade.timeframe,
+      notes: trade.notes || undefined,
+      tags: trade.tags ? trade.tags.split(',').filter(Boolean) : undefined,
     };
 
     return NextResponse.json(formatted, { status: 201 });

@@ -218,7 +218,7 @@ export default function CalendarView({ trades }: CalendarViewProps) {
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-bold text-white">{trade.instrument}</span>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                        trade.direction === 'Long'
+                        trade.direction === 'Buy'
                           ? 'bg-[#22c55e]/15 text-[#22c55e]'
                           : 'bg-[#ef4444]/15 text-[#ef4444]'
                       }`}>

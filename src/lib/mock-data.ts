@@ -4,29 +4,29 @@ export type Direction = 'Buy' | 'Sell';
 export type TradeType = 'Intraday' | 'Multiday';
 export type Strategy = 'Breakout' | 'Momentum' | 'Mean Reversion' | 'Range';
 export type InstrumentCategory = 'FOREX' | 'COMMODITIES' | 'STOCKS';
-export type Timeframe = '1h' | '2h' | '4h';
+export type Timeframe = 'M1' | 'M5' | 'M15' | 'M30' | 'H1' | 'H4' | 'D1' | 'W1' | 'MN';
 
 export interface Trade {
   id: number;
-  date: string; // YYYY-MM-DD
+  date: string;
   instrument: string;
   category: InstrumentCategory;
   direction: Direction;
   entry: number;
   stopLoss: number;
   takeProfit: number;
-  pnl: number; // dollar P&L
-  pnlR: number; // R-multiple
+  pnl: number;
+  pnlR: number;
   status: 'Win' | 'Loss';
   strategy: Strategy;
   type: TradeType;
   timeframe: Timeframe;
+  notes?: string;
+  tags?: string[];
 }
 
-// No pre-populated data - start empty, user adds their own trades
 export const trades: Trade[] = [];
 
-// localStorage persistence
 const STORAGE_KEY = 'tradevault_trades';
 
 export function loadTrades(): Trade[] {
@@ -34,18 +34,53 @@ export function loadTrades(): Trade[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
+  } catch { return []; }
 }
 
 export function saveTrades(tradeList: Trade[]): void {
   if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(tradeList));
-  } catch {
-    // Storage full or unavailable
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(tradeList)); } catch {}
+}
+
+// Max Drawdown calculation
+function calculateMaxDrawdown(tradeList: Trade[]): number {
+  if (tradeList.length === 0) return 0;
+  let peak = 0;
+  let maxDrawdown = 0;
+  let cumulative = 0;
+  for (const t of tradeList) {
+    cumulative += t.pnl;
+    if (cumulative > peak) peak = cumulative;
+    if (peak > 0) {
+      const drawdown = (peak - cumulative) / peak * 100;
+      if (drawdown > maxDrawdown) maxDrawdown = drawdown;
+    }
   }
+  return Math.round(maxDrawdown * 10) / 10;
+}
+
+// Sharpe Ratio (simplified)
+function calculateSharpe(tradeList: Trade[]): number {
+  if (tradeList.length < 2) return 0;
+  const returns = tradeList.map(t => t.pnl);
+  const avg = returns.reduce((s, r) => s + r, 0) / returns.length;
+  const variance = returns.reduce((s, r) => s + Math.pow(r - avg, 2), 0) / returns.length;
+  const stdDev = Math.sqrt(variance);
+  if (stdDev === 0) return 0;
+  return Math.round((avg / stdDev) * Math.sqrt(252) * 100) / 100;
+}
+
+// Sortino Ratio (only penalizes downside deviation)
+function calculateSortino(tradeList: Trade[]): number {
+  if (tradeList.length < 2) return 0;
+  const returns = tradeList.map(t => t.pnl);
+  const avg = returns.reduce((s, r) => s + r, 0) / returns.length;
+  const downsideReturns = returns.filter(r => r < avg);
+  if (downsideReturns.length === 0) return avg > 0 ? 99.9 : 0;
+  const downsideVariance = downsideReturns.reduce((s, r) => s + Math.pow(r - avg, 2), 0) / downsideReturns.length;
+  const downsideDev = Math.sqrt(downsideVariance);
+  if (downsideDev === 0) return 0;
+  return Math.round((avg / downsideDev) * Math.sqrt(252) * 100) / 100;
 }
 
 // Helper functions to compute KPIs from trades
@@ -56,7 +91,17 @@ export function computeKPIs(tradeList: Trade[]) {
   const grossWins = wins.reduce((sum, t) => sum + t.pnl, 0);
   const grossLosses = Math.abs(losses.reduce((sum, t) => sum + t.pnl, 0));
   const winRate = tradeList.length > 0 ? (wins.length / tradeList.length) * 100 : 0;
-  const profitFactor = grossLosses > 0 ? grossWins / grossLosses : 0;
+
+  // Profit Factor: 999 = perfect (no losses), 0 = no trades
+  let profitFactor: number;
+  if (grossLosses > 0) {
+    profitFactor = grossWins / grossLosses;
+  } else if (grossWins > 0) {
+    profitFactor = 999; // No losses = infinite
+  } else {
+    profitFactor = 0; // No trades at all
+  }
+
   const totalR = tradeList.reduce((sum, t) => sum + t.pnlR, 0);
   const avgWinR = wins.length > 0 ? wins.reduce((sum, t) => sum + t.pnlR, 0) / wins.length : 0;
   const avgLossR = losses.length > 0 ? losses.reduce((sum, t) => sum + t.pnlR, 0) / losses.length : 0;
@@ -73,18 +118,22 @@ export function computeKPIs(tradeList: Trade[]) {
     else { consLosses++; consWins = 0; maxConsLosses = Math.max(maxConsLosses, consLosses); }
   }
 
-  // Risk reward ratio
-  const avgRisk = tradeList.reduce((sum, t) => sum + Math.abs(t.pnlR), 0) / tradeList.length;
-  const riskReward = avgLossR !== 0 ? Math.abs(avgWinR / avgLossR) : 0;
+  // Risk Reward: if no losses, show avgWinR; otherwise show ratio
+  const riskReward = avgLossR !== 0 ? Math.abs(avgWinR / avgLossR) : (avgWinR > 0 ? avgWinR : 0);
+
+  // Advanced KPIs
+  const maxDrawdown = calculateMaxDrawdown(tradeList);
+  const sharpeRatio = calculateSharpe(tradeList);
+  const sortinoRatio = calculateSortino(tradeList);
 
   return {
     totalTrades: tradeList.length,
     grossPnl,
-    netPnl: grossPnl, // Same as gross in this case
+    netPnl: grossPnl,
     grossWins,
     grossLosses,
     winRate: Math.round(winRate * 10) / 10,
-    profitFactor: Math.round(profitFactor * 10) / 10,
+    profitFactor: profitFactor === 999 ? 999 : Math.round(profitFactor * 10) / 10,
     totalR: Math.round(totalR * 10) / 10,
     avgWinR: Math.round(avgWinR * 10) / 10,
     avgLossR: Math.round(avgLossR * 10) / 10,
@@ -95,29 +144,25 @@ export function computeKPIs(tradeList: Trade[]) {
     maxConsWins,
     maxConsLosses,
     riskReward: Math.round(riskReward * 10) / 10,
+    maxDrawdown,
+    sharpeRatio,
+    sortinoRatio,
   };
 }
 
-// Equity curve data (cumulative P&L)
+// Equity curve data
 export function getEquityCurve(tradeList: Trade[]) {
   let cumulative = 0;
   return tradeList.map((t, i) => {
     cumulative += t.pnl;
-    return {
-      trade: i + 1,
-      pnl: cumulative,
-      label: `#${i + 1}`,
-    };
+    return { trade: i + 1, pnl: cumulative, label: `#${i + 1}` };
   });
 }
 
 // P&L per trade data
 export function getPnlPerTrade(tradeList: Trade[]) {
   return tradeList.map((t, i) => ({
-    trade: i + 1,
-    pnl: t.pnl,
-    label: `#${i + 1}`,
-    status: t.status,
+    trade: i + 1, pnl: t.pnl, label: `#${i + 1}`, status: t.status,
   }));
 }
 
@@ -125,16 +170,41 @@ export function getPnlPerTrade(tradeList: Trade[]) {
 export function getMonthlyPnl(tradeList: Trade[]) {
   const months: Record<string, number> = {};
   for (const t of tradeList) {
-    const key = t.date.substring(0, 7); // YYYY-MM
+    const key = t.date.substring(0, 7);
     months[key] = (months[key] || 0) + t.pnl;
   }
   return Object.entries(months)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([month, pnl]) => ({
-      month,
-      pnl,
+      month, pnl,
       label: new Date(month + '-01').toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
     }));
+}
+
+// P&L distribution for histogram
+export function getPnlDistribution(tradeList: Trade[]): { range: string; count: number; wins: number; losses: number }[] {
+  if (tradeList.length === 0) return [];
+  const buckets: Record<string, { count: number; wins: number; losses: number }> = {
+    '< -1000': { count: 0, wins: 0, losses: 0 },
+    '-1000/-500': { count: 0, wins: 0, losses: 0 },
+    '-500/0': { count: 0, wins: 0, losses: 0 },
+    '0/500': { count: 0, wins: 0, losses: 0 },
+    '500/1000': { count: 0, wins: 0, losses: 0 },
+    '> 1000': { count: 0, wins: 0, losses: 0 },
+  };
+  for (const t of tradeList) {
+    let bucket: string;
+    if (t.pnl < -1000) bucket = '< -1000';
+    else if (t.pnl < -500) bucket = '-1000/-500';
+    else if (t.pnl < 0) bucket = '-500/0';
+    else if (t.pnl <= 500) bucket = '0/500';
+    else if (t.pnl <= 1000) bucket = '500/1000';
+    else bucket = '> 1000';
+    buckets[bucket].count++;
+    if (t.status === 'Win') buckets[bucket].wins++;
+    else buckets[bucket].losses++;
+  }
+  return Object.entries(buckets).map(([range, data]) => ({ range, ...data }));
 }
 
 // Strategy breakdown
@@ -148,8 +218,7 @@ export function getStrategyBreakdown(tradeList: Trade[]) {
     strategies[t.strategy].totalR += t.pnlR;
   }
   return Object.entries(strategies).map(([strategy, data]) => ({
-    strategy,
-    ...data,
+    strategy, ...data,
     total: data.wins + data.losses,
     winRate: Math.round((data.wins / (data.wins + data.losses)) * 100),
   }));
@@ -165,8 +234,7 @@ export function getInstrumentBreakdown(tradeList: Trade[]) {
     categories[t.category].pnl += t.pnl;
   }
   return Object.entries(categories).map(([category, data]) => ({
-    category,
-    ...data,
+    category, ...data,
     total: data.wins + data.losses,
     winRate: Math.round((data.wins / (data.wins + data.losses)) * 100),
   }));
@@ -183,8 +251,7 @@ export function getDirectionBreakdown(tradeList: Trade[]) {
     dirs[t.direction].totalR += t.pnlR;
   }
   return Object.entries(dirs).map(([direction, data]) => ({
-    direction,
-    ...data,
+    direction, ...data,
     total: data.wins + data.losses,
     winRate: Math.round((data.wins / (data.wins + data.losses)) * 100),
   }));
@@ -201,8 +268,7 @@ export function getTimeframeBreakdown(tradeList: Trade[]) {
     tf[t.timeframe].totalR += t.pnlR;
   }
   return Object.entries(tf).map(([timeframe, data]) => ({
-    timeframe,
-    ...data,
+    timeframe, ...data,
     total: data.wins + data.losses,
     winRate: Math.round((data.wins / (data.wins + data.losses)) * 100),
   }));

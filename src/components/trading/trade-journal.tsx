@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, ArrowUpDown, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { Plus, ArrowUpDown, ChevronLeft, ChevronRight, Trash2, MessageSquare } from 'lucide-react';
 import type { Trade } from '@/lib/mock-data';
 
 interface TradeJournalProps {
@@ -103,6 +103,7 @@ export default function TradeJournal({ trades, onDeleteTrade, onAddClick }: Trad
                 <TableHead className="text-[#94a3b8] text-right"><SortHeaderCell label="P&L (R)" k="pnlR" onSort={toggleSort} /></TableHead>
                 <TableHead className="text-[#94a3b8]"><SortHeaderCell label="Statut" k="status" onSort={toggleSort} /></TableHead>
                 <TableHead className="text-[#94a3b8] hidden lg:table-cell"><SortHeaderCell label="Strategie" k="strategy" onSort={toggleSort} /></TableHead>
+                <TableHead className="text-[#94a3b8] hidden lg:table-cell">Notes</TableHead>
                 <TableHead className="text-[#94a3b8] w-10"></TableHead>
               </TableRow>
             </TableHeader>
@@ -146,6 +147,16 @@ export default function TradeJournal({ trades, onDeleteTrade, onAddClick }: Trad
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-[#94a3b8] hidden lg:table-cell">{trade.strategy}</TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      {trade.notes && (
+                        <button
+                          title={trade.notes}
+                          className="p-1.5 rounded-lg text-[#94a3b8]/50 hover:text-[#ff6b2b] hover:bg-[#ff6b2b]/10 transition-all"
+                        >
+                          <MessageSquare className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <button
                         onClick={() => onDeleteTrade(trade.id)}
@@ -160,7 +171,7 @@ export default function TradeJournal({ trades, onDeleteTrade, onAddClick }: Trad
               </AnimatePresence>
               {paginated.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={11} className="text-center py-12 text-[#94a3b8]">
+                  <TableCell colSpan={12} className="text-center py-12 text-[#94a3b8]">
                     Aucun trade trouve pour ces filtres.
                   </TableCell>
                 </TableRow>

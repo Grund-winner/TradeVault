@@ -47,6 +47,19 @@ export async function ensureDatabase() {
         strategy TEXT NOT NULL,
         type TEXT NOT NULL,
         timeframe TEXT NOT NULL,
+        notes TEXT,
+        tags TEXT,
+        "createdAt" TIMESTAMP NOT NULL DEFAULT NOW(),
+        "updatedAt" TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS users (
+        id TEXT PRIMARY KEY,
+        email TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL,
+        "siteName" TEXT NOT NULL DEFAULT 'TradeVault',
+        "siteSubtitle" TEXT NOT NULL DEFAULT 'Analytics Pro',
+        theme TEXT NOT NULL DEFAULT 'dark',
         "createdAt" TIMESTAMP NOT NULL DEFAULT NOW(),
         "updatedAt" TIMESTAMP NOT NULL DEFAULT NOW()
       );

@@ -59,7 +59,7 @@ const strategies: Array<Strategy | 'Tous'> = ['Tous', 'Breakout', 'Momentum', 'M
 const instruments: Array<InstrumentCategory | 'Tous'> = ['Tous', 'FOREX', 'COMMODITIES', 'STOCKS'];
 const directions: Array<Direction | 'Tous'> = ['Tous', 'Buy', 'Sell'];
 const tradeTypes: Array<TradeType | 'Tous'> = ['Tous', 'Intraday', 'Multiday'];
-const timeframes: Array<Timeframe | 'Tous'> = ['Tous', '1h', '2h', '4h'];
+const timeframes: Array<Timeframe | 'Tous'> = ['Tous', 'M1', 'M5', 'M15', 'M30', 'H1', 'H4', 'D1', 'W1', 'MN'];
 
 function FilterSelect({
   label,

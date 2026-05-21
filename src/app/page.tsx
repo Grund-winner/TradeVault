@@ -7,11 +7,13 @@ import Header from '@/components/trading/header';
 import KpiCards from '@/components/trading/kpi-cards';
 import EquityCurve from '@/components/trading/equity-curve';
 import PnlChart from '@/components/trading/pnl-chart';
+import PnLDistribution from '@/components/trading/pnl-distribution';
 import FiltersBar, { type Filters, applyFilters } from '@/components/trading/filters';
 import TradeJournal from '@/components/trading/trade-journal';
 import DetailedAnalysis from '@/components/trading/detailed-analysis';
 import CalendarView from '@/components/trading/calendar-view';
 import AddTradeDialog from '@/components/trading/add-trade-dialog';
+import SettingsPanel from '@/components/trading/settings-panel';
 import { computeKPIs, type Trade } from '@/lib/mock-data';
 import { Plus, TrendingUp, FileText } from 'lucide-react';
 
@@ -71,6 +73,25 @@ export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Settings state
+  const [siteName, setSiteName] = useState('TradeVault');
+  const [siteSubtitle, setSiteSubtitle] = useState('Analytics Pro');
+  const [showSettings, setShowSettings] = useState(false);
+
+  // Load user settings from session
+  const fetchSession = useCallback(async () => {
+    try {
+      const res = await fetch('/api/auth/session');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.siteName) setSiteName(data.siteName);
+        if (data.siteSubtitle) setSiteSubtitle(data.siteSubtitle);
+      }
+    } catch {
+      // Use defaults
+    }
+  }, []);
+
   // Load trades from database API on mount
   const fetchTrades = useCallback(async () => {
     try {
@@ -87,8 +108,9 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    fetchSession();
     fetchTrades();
-  }, [fetchTrades]);
+  }, [fetchSession, fetchTrades]);
 
   const filteredTrades = useMemo(() => applyFilters(allTradeData, filters, searchQuery), [allTradeData, filters, searchQuery]);
   const kpis = useMemo(() => computeKPIs(filteredTrades), [filteredTrades]);
@@ -131,6 +153,18 @@ export default function Home() {
     }
   };
 
+  // Logout: clear cookie and redirect
+  const handleLogout = () => {
+    document.cookie = 'tv_session=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+    window.location.href = '/login';
+  };
+
+  // Handle settings saved
+  const handleSettingsSaved = (settings: { siteName: string; siteSubtitle: string; theme: string }) => {
+    setSiteName(settings.siteName);
+    setSiteSubtitle(settings.siteSubtitle);
+  };
+
   const pageVariants = {
     initial: { opacity: 0, y: 12 },
     animate: { opacity: 1, y: 0, transition: { duration: 0.3 } },
@@ -156,10 +190,19 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen bg-[#0a0a0f]">
-      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} allTrades={allTradeData} />
+      <Sidebar
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        allTrades={allTradeData}
+        siteName={siteName}
+        siteSubtitle={siteSubtitle}
+      />
 
       <main className="flex-1 min-h-screen grid-bg">
-        <Header />
+        <Header
+          siteName={siteName}
+          onSettingsClick={() => setShowSettings(true)}
+        />
 
         <div className="px-4 md:px-6 py-6 max-w-[1600px] mx-auto">
           {/* Filters */}
@@ -219,6 +262,7 @@ export default function Home() {
                     <EquityCurve trades={filteredTrades} />
                     <PnlChart trades={filteredTrades} />
                   </div>
+                  <PnLDistribution trades={filteredTrades} />
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
@@ -269,7 +313,7 @@ export default function Home() {
                           { label: 'P&L Pertes', value: `$${kpis.grossLosses.toLocaleString()}`, sub: 'Total des pertes', color: 'text-[#ef4444]' },
                           { label: 'P&L Net', value: `${kpis.netPnl >= 0 ? '+' : ''}$${kpis.netPnl.toLocaleString()}`, sub: 'Resultat net', color: kpis.netPnl >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]' },
                           { label: 'Total R', value: `${kpis.totalR > 0 ? '+' : ''}${kpis.totalR}R`, sub: 'R-multiples cumules', color: kpis.totalR >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]' },
-                          { label: 'Profit Factor', value: kpis.profitFactor.toString(), sub: kpis.profitFactor >= 2 ? 'Excellent' : kpis.profitFactor >= 1.5 ? 'Bon' : 'A ameliorer', color: 'text-[#ff6b2b]' },
+                          { label: 'Profit Factor', value: kpis.profitFactor === 999 ? '∞' : kpis.profitFactor.toString(), sub: kpis.profitFactor === 999 ? 'Parfait (0 perte)' : kpis.profitFactor >= 2 ? 'Excellent' : kpis.profitFactor >= 1.5 ? 'Bon' : 'A ameliorer', color: 'text-[#ff6b2b]' },
                           { label: 'Risk Reward', value: kpis.riskReward.toString(), sub: 'Ratio moyen', color: 'text-[#ff6b2b]' },
                         ].map((stat) => (
                           <div key={stat.label} className="flex items-center justify-between py-2 border-b border-white/[0.04] last:border-0">
@@ -327,6 +371,14 @@ export default function Home() {
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
         onAdd={handleAddTrade}
+      />
+
+      {/* Settings Panel */}
+      <SettingsPanel
+        open={showSettings}
+        onOpenChange={setShowSettings}
+        onLogout={handleLogout}
+        onSettingsSaved={handleSettingsSaved}
       />
     </div>
   );

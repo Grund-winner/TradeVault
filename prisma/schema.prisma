@@ -23,8 +23,23 @@ model Trade {
   strategy    String
   type        String
   timeframe   String
+  notes       String?  @db.Text
+  tags        String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@map("trades")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password      String
+  siteName      String   @default("TradeVault")
+  siteSubtitle  String   @default("Analytics Pro")
+  theme         String   @default("dark")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("users")
 }

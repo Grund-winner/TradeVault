@@ -10,6 +10,9 @@ import {
   Flame,
   Sigma,
   Percent,
+  TrendingDown,
+  Activity,
+  BarChart3,
 } from 'lucide-react';
 import { computeKPIs, type Trade } from '@/lib/mock-data';
 
@@ -20,11 +23,14 @@ interface KpiCardsProps {
 export default function KpiCards({ trades }: KpiCardsProps) {
   const kpis = computeKPIs(trades);
 
+  const safeDiv = (a: number, b: number, fallback = 0): number => (b === 0 ? fallback : a / b);
+  const hasTrades = kpis.totalTrades > 0;
+
   const cards = [
     {
       label: 'P&L Brut',
       value: `$${kpis.grossWins.toLocaleString()}`,
-      subtitle: `+${((kpis.grossWins / (kpis.grossWins + kpis.grossLosses)) * 100).toFixed(1)}% gains`,
+      subtitle: hasTrades ? `+${(safeDiv(kpis.grossWins, kpis.grossWins + kpis.grossLosses) * 100).toFixed(1)}% gains` : 'N/A',
       icon: <DollarSign className="h-4 w-4" />,
       positive: true,
       isHex: false,
@@ -32,7 +38,7 @@ export default function KpiCards({ trades }: KpiCardsProps) {
     {
       label: 'P&L Net',
       value: `$${kpis.netPnl.toLocaleString()}`,
-      subtitle: `${kpis.netPnl >= 0 ? '+' : ''}${((kpis.netPnl / (kpis.grossWins + kpis.grossLosses)) * 100).toFixed(1)}% du brut`,
+      subtitle: hasTrades ? `${kpis.netPnl >= 0 ? '+' : ''}${(safeDiv(kpis.netPnl, kpis.grossWins + kpis.grossLosses) * 100).toFixed(1)}% du brut` : 'N/A',
       icon: <TrendingUp className="h-4 w-4" />,
       positive: kpis.netPnl >= 0,
       isHex: false,
@@ -47,8 +53,8 @@ export default function KpiCards({ trades }: KpiCardsProps) {
     },
     {
       label: 'Risk Reward',
-      value: kpis.riskReward.toString(),
-      subtitle: 'Ratio moyen',
+      value: hasTrades ? kpis.riskReward.toString() : 'N/A',
+      subtitle: hasTrades ? 'Ratio moyen' : 'Aucun trade',
       icon: <Hexagon className="h-4 w-4" />,
       positive: true,
       isHex: true,
@@ -63,8 +69,8 @@ export default function KpiCards({ trades }: KpiCardsProps) {
     },
     {
       label: 'Profit Factor',
-      value: kpis.profitFactor.toString(),
-      subtitle: `${kpis.profitFactor >= 2 ? 'Excellent' : kpis.profitFactor >= 1.5 ? 'Bon' : 'Moyen'}`,
+      value: kpis.profitFactor === 999 ? '∞' : hasTrades ? kpis.profitFactor.toString() : 'N/A',
+      subtitle: kpis.profitFactor === 999 ? 'Parfait (0 perte)' : hasTrades ? `${kpis.profitFactor >= 2 ? 'Excellent' : kpis.profitFactor >= 1.5 ? 'Bon' : 'Moyen'}` : 'Aucun trade',
       icon: <Flame className="h-4 w-4" />,
       positive: kpis.profitFactor >= 1,
       isHex: true,
@@ -79,11 +85,41 @@ export default function KpiCards({ trades }: KpiCardsProps) {
     },
     {
       label: 'ROI',
-      value: `${((kpis.netPnl / (kpis.grossWins + kpis.grossLosses)) * 100).toFixed(1)}%`,
+      value: hasTrades ? `${(safeDiv(kpis.netPnl, kpis.grossWins + kpis.grossLosses) * 100).toFixed(1)}%` : 'N/A',
       subtitle: 'Rendement',
       icon: <Percent className="h-4 w-4" />,
       positive: true,
       isHex: false,
+    },
+    {
+      label: 'Drawdown Max',
+      value: `-${kpis.maxDrawdown}%`,
+      subtitle: 'Perte maximale',
+      icon: <TrendingDown className="h-4 w-4" />,
+      positive: false,
+      isHex: true,
+      hexGradient: 'from-[#ef4444] to-[#dc2626]',
+      valueColor: '#ef4444',
+    },
+    {
+      label: 'Ratio de Sharpe',
+      value: kpis.sharpeRatio.toString(),
+      subtitle: kpis.sharpeRatio > 2 ? 'Excellent' : kpis.sharpeRatio > 1 ? 'Bon' : kpis.sharpeRatio > 0 ? 'Faible' : 'N/A',
+      icon: <Activity className="h-4 w-4" />,
+      positive: kpis.sharpeRatio > 1,
+      isHex: true,
+      hexGradient: kpis.sharpeRatio > 2 ? 'from-[#22c55e] to-[#16a34a]' : kpis.sharpeRatio > 1 ? 'from-[#f59e0b] to-[#d97706]' : kpis.sharpeRatio > 0 ? 'from-[#ff6b2b] to-[#ff4500]' : 'from-[#94a3b8] to-[#64748b]',
+      valueColor: kpis.sharpeRatio > 2 ? '#22c55e' : kpis.sharpeRatio > 1 ? '#f59e0b' : kpis.sharpeRatio > 0 ? '#ff6b2b' : '#94a3b8',
+    },
+    {
+      label: 'Ratio de Sortino',
+      value: kpis.sortinoRatio.toString(),
+      subtitle: kpis.sortinoRatio > 2 ? 'Excellent' : kpis.sortinoRatio > 1 ? 'Bon' : kpis.sortinoRatio > 0 ? 'Faible' : 'N/A',
+      icon: <BarChart3 className="h-4 w-4" />,
+      positive: kpis.sortinoRatio > 1,
+      isHex: true,
+      hexGradient: kpis.sortinoRatio > 2 ? 'from-[#22c55e] to-[#16a34a]' : kpis.sortinoRatio > 1 ? 'from-[#f59e0b] to-[#d97706]' : kpis.sortinoRatio > 0 ? 'from-[#ff6b2b] to-[#ff4500]' : 'from-[#94a3b8] to-[#64748b]',
+      valueColor: kpis.sortinoRatio > 2 ? '#22c55e' : kpis.sortinoRatio > 1 ? '#f59e0b' : kpis.sortinoRatio > 0 ? '#ff6b2b' : '#94a3b8',
     },
   ];
 
@@ -105,7 +141,7 @@ export default function KpiCards({ trades }: KpiCardsProps) {
       variants={container}
       initial="hidden"
       animate="show"
-      className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+      className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
     >
       {cards.map((card) => (
         <motion.div
@@ -150,7 +186,7 @@ export default function KpiCards({ trades }: KpiCardsProps) {
           {card.isHex && (
             <div className="mb-3 relative w-16 h-16 flex items-center justify-center">
               <div
-                className="hex-badge w-16 h-16 bg-gradient-to-br from-[#ff6b2b] to-[#ff4500] flex items-center justify-center"
+                className={`hex-badge w-16 h-16 bg-gradient-to-br ${'hexGradient' in card ? card.hexGradient : 'from-[#ff6b2b] to-[#ff4500]'} flex items-center justify-center`}
               >
                 <span className="text-sm font-bold text-white">{card.value}</span>
               </div>
@@ -175,7 +211,7 @@ export default function KpiCards({ trades }: KpiCardsProps) {
           )}
 
           <p className="text-xs text-[#94a3b8] font-medium uppercase tracking-wider">{card.label}</p>
-          <p className={`text-xs mt-1 font-medium ${card.positive ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
+          <p className={`text-xs mt-1 font-medium ${'valueColor' in card ? '' : card.positive ? 'text-[#22c55e]' : 'text-[#ef4444]'}`} style={'valueColor' in card ? { color: card.valueColor } : undefined}>
             {card.subtitle}
           </p>
 

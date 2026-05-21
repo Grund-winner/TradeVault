@@ -47,8 +47,13 @@ export default function DetailedAnalysis({ trades }: DetailedAnalysisProps) {
   const monthlyData = getMonthlyPnl(trades);
 
   // Best/worst months
-  const bestMonth = monthlyData.reduce((a, b) => a.pnl > b.pnl ? a : b, monthlyData[0]);
-  const worstMonth = monthlyData.reduce((a, b) => a.pnl < b.pnl ? a : b, monthlyData[0]);
+  const bestMonth = monthlyData.length > 0
+    ? monthlyData.reduce((a, b) => a.pnl > b.pnl ? a : b, monthlyData[0])
+    : null;
+  const losingMonths = monthlyData.filter(m => m.pnl < 0);
+  const worstMonth = losingMonths.length > 0
+    ? losingMonths.reduce((a, b) => a.pnl < b.pnl ? a : b, losingMonths[0])
+    : null;
 
   // Monthly heatmap data
   const allMonths = ['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aou', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -91,16 +96,16 @@ export default function DetailedAnalysis({ trades }: DetailedAnalysisProps) {
             <TrendingUp className="h-4 w-4 text-[#22c55e]" />
             <span className="text-xs text-[#94a3b8]">Meilleur mois</span>
           </div>
-          <p className="text-lg font-bold text-[#22c55e]">+${bestMonth?.pnl.toLocaleString()}</p>
-          <p className="text-[10px] text-[#94a3b8] mt-1">{bestMonth?.label}</p>
+          <p className="text-lg font-bold text-[#22c55e]">{bestMonth ? `+$${bestMonth.pnl.toLocaleString()}` : 'N/A'}</p>
+          <p className="text-[10px] text-[#94a3b8] mt-1">{bestMonth?.label || 'Aucune donnee'}</p>
         </div>
         <div className="glass-card rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-2">
             <TrendingDown className="h-4 w-4 text-[#ef4444]" />
             <span className="text-xs text-[#94a3b8]">Pire mois</span>
           </div>
-          <p className="text-lg font-bold text-[#ef4444]">${worstMonth?.pnl.toLocaleString()}</p>
-          <p className="text-[10px] text-[#94a3b8] mt-1">{worstMonth?.label}</p>
+          <p className="text-lg font-bold text-[#ef4444]">{worstMonth ? `$${worstMonth.pnl.toLocaleString()}` : '$0'}</p>
+          <p className="text-[10px] text-[#94a3b8] mt-1">{worstMonth?.label || 'Aucune perte'}</p>
         </div>
         <div className="glass-card rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-2">
