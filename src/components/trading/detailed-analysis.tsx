@@ -196,7 +196,7 @@ export default function DetailedAnalysis({ trades }: DetailedAnalysisProps) {
         <motion.div variants={item} className="glass-card rounded-2xl p-6">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="h-4 w-4 text-[#ff6b2b]" />
-            <h4 className="text-sm font-semibold text-white">Long vs Short</h4>
+            <h4 className="text-sm font-semibold text-white">Buy vs Sell</h4>
           </div>
           <div className="space-y-4">
             {directionData.map(d => (
@@ -204,7 +204,7 @@ export default function DetailedAnalysis({ trades }: DetailedAnalysisProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${
-                      d.direction === 'Long'
+                      d.direction === 'Buy'
                         ? 'bg-[#22c55e]/15 text-[#22c55e]'
                         : 'bg-[#ef4444]/15 text-[#ef4444]'
                     }`}>
@@ -219,7 +219,7 @@ export default function DetailedAnalysis({ trades }: DetailedAnalysisProps) {
                 <div className="flex items-center gap-3">
                   <div className="flex-1 h-2 rounded-full bg-white/5 overflow-hidden">
                     <div
-                      className={`h-full rounded-full transition-all duration-700 ${d.direction === 'Long' ? 'bg-gradient-to-r from-[#22c55e] to-[#4ade80]' : 'bg-gradient-to-r from-[#ef4444] to-[#f87171]'}`}
+                      className={`h-full rounded-full transition-all duration-700 ${d.direction === 'Buy' ? 'bg-gradient-to-r from-[#22c55e] to-[#4ade80]' : 'bg-gradient-to-r from-[#ef4444] to-[#f87171]'}`}
                       style={{ width: `${d.winRate}%` }}
                     />
                   </div>

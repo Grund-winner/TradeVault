@@ -1,6 +1,6 @@
 // TradeVault - Types and helper functions
 
-export type Direction = 'Long' | 'Short';
+export type Direction = 'Buy' | 'Sell';
 export type TradeType = 'Intraday' | 'Multiday';
 export type Strategy = 'Breakout' | 'Momentum' | 'Mean Reversion' | 'Range';
 export type InstrumentCategory = 'FOREX' | 'COMMODITIES' | 'STOCKS';

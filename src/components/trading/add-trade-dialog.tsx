@@ -31,7 +31,7 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [instrument, setInstrument] = useState('');
   const [category, setCategory] = useState<InstrumentCategory>('FOREX');
-  const [direction, setDirection] = useState<Direction>('Long');
+  const [direction, setDirection] = useState<Direction>('Buy');
   const [entry, setEntry] = useState('');
   const [stopLoss, setStopLoss] = useState('');
   const [takeProfit, setTakeProfit] = useState('');
@@ -149,8 +149,8 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-[#1a1a24] border-white/[0.08]">
-                  <SelectItem value="Long">Long</SelectItem>
-                  <SelectItem value="Short">Short</SelectItem>
+                  <SelectItem value="Buy">Buy</SelectItem>
+                  <SelectItem value="Sell">Sell</SelectItem>
                 </SelectContent>
               </Select>
             </div>

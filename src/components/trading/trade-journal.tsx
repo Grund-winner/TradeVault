@@ -124,7 +124,7 @@ export default function TradeJournal({ trades, onDeleteTrade, onAddClick }: Trad
                     <TableCell className="text-sm text-white font-medium">{trade.instrument}</TableCell>
                     <TableCell>
                       <Badge variant="outline" className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                        trade.direction === 'Long' ? 'border-[#22c55e]/30 text-[#22c55e] bg-[#22c55e]/10' : 'border-[#ef4444]/30 text-[#ef4444] bg-[#ef4444]/10'
+                        trade.direction === 'Buy' ? 'border-[#22c55e]/30 text-[#22c55e] bg-[#22c55e]/10' : 'border-[#ef4444]/30 text-[#ef4444] bg-[#ef4444]/10'
                       }`}>
                         {trade.direction}
                       </Badge>

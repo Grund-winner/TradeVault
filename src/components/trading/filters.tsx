@@ -57,7 +57,7 @@ const months = [
 
 const strategies: Array<Strategy | 'Tous'> = ['Tous', 'Breakout', 'Momentum', 'Mean Reversion', 'Range'];
 const instruments: Array<InstrumentCategory | 'Tous'> = ['Tous', 'FOREX', 'COMMODITIES', 'STOCKS'];
-const directions: Array<Direction | 'Tous'> = ['Tous', 'Long', 'Short'];
+const directions: Array<Direction | 'Tous'> = ['Tous', 'Buy', 'Sell'];
 const tradeTypes: Array<TradeType | 'Tous'> = ['Tous', 'Intraday', 'Multiday'];
 const timeframes: Array<Timeframe | 'Tous'> = ['Tous', '1h', '2h', '4h'];
 
