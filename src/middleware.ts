@@ -5,10 +5,11 @@ export function middleware(request: NextRequest) {
 
   // Public routes - no auth needed
   const publicPaths = ['/login'];
-  const isPublicPath = publicPaths.some(p => pathname === p || pathname.startsWith('/api/auth/'));
+  const isPublicPath = publicPaths.some(p => pathname === p);
+  const isApiRoute = pathname.startsWith('/api/'); // Let all API routes through (auth handled server-side)
   const isStaticAsset = pathname.startsWith('/_next/') || pathname.startsWith('/logo') || pathname === '/favicon.ico' || pathname === '/robots.txt';
 
-  if (isPublicPath || isStaticAsset) {
+  if (isPublicPath || isApiRoute || isStaticAsset) {
     return NextResponse.next();
   }
 
