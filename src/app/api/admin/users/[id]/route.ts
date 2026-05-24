@@ -1,28 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, ensureDatabase } from '@/lib/db';
-import { requireAdmin } from '@/lib/auth';
+import { getCurrentUser, safeJson } from '@/lib/auth';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   try {
-    const admin = await requireAdmin();
-    if (!admin) return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    const admin = await getCurrentUser();
+    if (!admin || (admin.role !== 'admin' && admin.role !== 'host')) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
     await ensureDatabase();
 
     const users = await db.$queryRawUnsafe<Array<Record<string, unknown>>>(
-      `SELECT id, email, role, phone, locale, "initialBalance", "isActive", "siteName", "siteSubtitle", "createdAt" FROM users WHERE id = $1`, id
+      `SELECT id, email, role, phone, locale, "initialBalance"::float, "isActive", "siteName", "siteSubtitle", "createdAt" FROM users WHERE id = $1`, id
     );
     if (users.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     const stats = await db.$queryRawUnsafe<Array<Record<string, unknown>>>(
-      `SELECT COUNT(*)::int as total_trades, COALESCE(SUM(pnl), 0) as total_pnl FROM trades WHERE "userId" = $1`, id
+      `SELECT COUNT(*)::int as total_trades, COALESCE(SUM(pnl), 0)::float as total_pnl FROM trades WHERE "userId" = $1`, id
     );
 
     const subs = await db.$queryRawUnsafe<Array<Record<string, unknown>>>(
       `SELECT * FROM subscriptions WHERE "userId" = $1 ORDER BY "createdAt" DESC LIMIT 5`, id
     );
 
-    return NextResponse.json({ user: users[0], stats: stats[0], subscriptions: subs });
+    return NextResponse.json(safeJson({ user: users[0], stats: stats[0], subscriptions: subs }));
   } catch (error) {
     console.error('[Admin] User detail error:', error);
     return NextResponse.json({ error: 'Failed' }, { status: 500 });
@@ -32,8 +34,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   try {
-    const admin = await requireAdmin();
-    if (!admin) return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    const admin = await getCurrentUser();
+    if (!admin || (admin.role !== 'admin' && admin.role !== 'host')) {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
     await ensureDatabase();
 
     const body = await request.json();
@@ -54,7 +58,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     const result = await db.$queryRawUnsafe<Array<Record<string, unknown>>>(query, ...values);
 
-    // Grant subscription if requested
     if (body.grantSubscription && result.length > 0) {
       const userId = result[0].id as string;
       const existingSub = await db.$queryRawUnsafe<Array<{ id: string }>>(
@@ -69,7 +72,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       }
     }
 
-    return NextResponse.json({ user: result[0] });
+    return NextResponse.json(safeJson({ user: result[0] }));
   } catch (error) {
     console.error('[Admin] Update user error:', error);
     return NextResponse.json({ error: 'Failed' }, { status: 500 });

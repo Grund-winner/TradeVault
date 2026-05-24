@@ -1,6 +1,21 @@
 import { cookies } from 'next/headers';
 import { db, ensureDatabase } from './db';
 
+// Convert BigInt values to Number for JSON serialization
+export function safeJson<T>(data: T): T {
+  if (data === null || data === undefined) return data;
+  if (typeof data === 'bigint') return Number(data) as unknown as T;
+  if (Array.isArray(data)) return data.map(safeJson) as unknown as T;
+  if (typeof data === 'object') {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
+      result[key] = safeJson(value);
+    }
+    return result as T;
+  }
+  return data;
+}
+
 export interface AuthUser {
   id: string;
   email: string;
