@@ -78,6 +78,7 @@ export default function Home() {
   const [siteSubtitle, setSiteSubtitle] = useState('Analytics Pro');
   const [showSettings, setShowSettings] = useState(false);
   const [userRole, setUserRole] = useState('user');
+  const [initialBalance, setInitialBalance] = useState(0);
 
   // Load user settings from session
   const fetchSession = useCallback(async () => {
@@ -88,6 +89,7 @@ export default function Home() {
         if (data.siteName) setSiteName(data.siteName);
         if (data.siteSubtitle) setSiteSubtitle(data.siteSubtitle);
         if (data.role) setUserRole(data.role);
+        if (data.initialBalance) setInitialBalance(data.initialBalance);
         if (data.subscription) setSubscription(data.subscription);
         // Apply theme from saved settings
         if (data.theme === 'light') {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Save, LogOut, Moon, Sun, Loader2, Check, Crown, ExternalLink } from 'lucide-react';
+import { Settings, Save, LogOut, Moon, Sun, Loader2, Check, Crown, ExternalLink, Wallet, Link2 } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -36,6 +36,7 @@ export default function SettingsPanel({
   const [showSaved, setShowSaved] = useState(false);
   const [subActive, setSubActive] = useState(false);
   const [subEndDate, setSubEndDate] = useState<string | null>(null);
+  const [initialBalance, setInitialBalance] = useState('');
 
   // Fetch current settings when panel opens
   const fetchSettings = useCallback(async () => {
@@ -51,6 +52,7 @@ export default function SettingsPanel({
           setSubActive(data.subscription.active);
           setSubEndDate(data.subscription.endDate);
         }
+        if (data.initialBalance) setInitialBalance(String(data.initialBalance));
       }
     } catch {
       // Use defaults on error
@@ -75,7 +77,7 @@ export default function SettingsPanel({
       const res = await fetch('/api/auth/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ siteName, siteSubtitle, theme }),
+        body: JSON.stringify({ siteName, siteSubtitle, theme, initialBalance }),
       });
 
       if (res.ok) {
@@ -262,6 +264,65 @@ export default function SettingsPanel({
                       Gerer l&apos;abonnement
                       <ExternalLink className="h-3 w-3" />
                     </a>
+                  </div>
+                </motion.div>
+                {/* Divider */}
+                <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+
+                {/* Starting Balance */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.2 }}
+                  className="space-y-3"
+                >
+                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Solde initial
+                  </Label>
+                  <div className="flex items-center gap-3 p-4 rounded-xl bg-muted border border-border">
+                    <div className="w-9 h-9 rounded-lg bg-background flex items-center justify-center">
+                      <Wallet className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <Input
+                        type="number"
+                        step="100"
+                        value={initialBalance}
+                        onChange={(e) => setInitialBalance(e.target.value)}
+                        placeholder="10000"
+                        className="h-9 rounded-lg bg-background border-border text-foreground text-sm"
+                      />
+                    </div>
+                    <span className="text-xs text-muted-foreground">EUR/USD</span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground/60">
+                    Votre solde de depart pour calculer le ROI et le drawdown.
+                  </p>
+                </motion.div>
+
+                {/* MT4/MT5 Connection Info */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.25 }}
+                  className="space-y-3"
+                >
+                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    MetaTrader
+                  </Label>
+                  <div className="p-4 rounded-xl bg-muted border border-border">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500/20 to-blue-600/10 flex items-center justify-center">
+                        <Link2 className="h-4 w-4 text-blue-400" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">MT4 / MT5 Sync</p>
+                        <p className="text-[11px] text-muted-foreground">Connexion via Expert Advisor</p>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">
+                      Utilisez l&apos;Expert Advisor TradeVault dans MetaTrader pour synchroniser automatiquement vos trades. Demandez le fichier .ex4/.ex5 dans le panneau admin.
+                    </p>
                   </div>
                 </motion.div>
               </>

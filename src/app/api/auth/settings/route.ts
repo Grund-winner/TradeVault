@@ -14,7 +14,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const { siteName, siteSubtitle, theme } = await request.json();
+    const { siteName, siteSubtitle, theme, initialBalance, mtAccountId, mtServer, mtPlatform } = await request.json();
 
     const updates: string[] = [];
     const values: unknown[] = [];
@@ -38,6 +38,30 @@ export async function PUT(request: NextRequest) {
       paramIndex++;
     }
 
+    if (initialBalance !== undefined && initialBalance !== null) {
+      updates.push(`"initialBalance" = $${paramIndex}`);
+      values.push(parseFloat(initialBalance));
+      paramIndex++;
+    }
+
+    if (mtAccountId !== undefined) {
+      updates.push(`"mtAccountId" = $${paramIndex}`);
+      values.push(String(mtAccountId));
+      paramIndex++;
+    }
+
+    if (mtServer !== undefined) {
+      updates.push(`"mtServer" = $${paramIndex}`);
+      values.push(String(mtServer));
+      paramIndex++;
+    }
+
+    if (mtPlatform !== undefined && (mtPlatform === 'mt4' || mtPlatform === 'mt5')) {
+      updates.push(`"mtPlatform" = $${paramIndex}`);
+      values.push(mtPlatform);
+      paramIndex++;
+    }
+
     if (updates.length === 0) {
       return NextResponse.json(
         { error: 'Aucune modification a appliquer' },
@@ -47,7 +71,7 @@ export async function PUT(request: NextRequest) {
 
     updates.push(`"updatedAt" = NOW()`);
 
-    const query = `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING id, email, "siteName", "siteSubtitle", theme`;
+    const query = `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING id, email, "siteName", "siteSubtitle", theme, "initialBalance", "mtAccountId", "mtServer", "mtPlatform"`;
     values.push(currentUser.id);
 
     const result = await db.$queryRawUnsafe<Array<Record<string, unknown>>>(query, ...values);

@@ -142,6 +142,10 @@ export async function ensureDatabase() {
     '"initialBalance" DOUBLE PRECISION NOT NULL DEFAULT 0',
     'locale TEXT NOT NULL DEFAULT \'fr\'',
     '"isActive" BOOLEAN NOT NULL DEFAULT true',
+    '"mtApiKey" TEXT',
+    '"mtAccountId" TEXT',
+    '"mtServer" TEXT',
+    '"mtPlatform" TEXT',
   ];
   for (const colDef of userColumns) {
     try {

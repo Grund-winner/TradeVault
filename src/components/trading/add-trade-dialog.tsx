@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   Dialog,
@@ -27,6 +27,16 @@ interface AddTradeDialogProps {
   onAdd: (trade: Trade) => void;
 }
 
+// Get pip size for an instrument
+function getPipSize(instrument: string): number {
+  const sym = instrument.toUpperCase();
+  if (sym.includes('JPY')) return 0.01;
+  if (sym.includes('XAU')) return 0.1;
+  if (sym.includes('XAG')) return 0.01;
+  if (sym.includes('OIL') || sym.includes('WTI') || sym.includes('BRENT')) return 0.01;
+  return 0.0001;
+}
+
 export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDialogProps) {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [instrument, setInstrument] = useState('');
@@ -44,8 +54,53 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
   const [notes, setNotes] = useState('');
   const [tags, setTags] = useState('');
 
+  // Auto-calculate pips
+  const pipCalculations = useMemo(() => {
+    const entryVal = parseFloat(entry);
+    const slVal = parseFloat(stopLoss);
+    const tpVal = parseFloat(takeProfit);
+    const pipSize = getPipSize(instrument);
+
+    if (!entryVal || !pipSize) {
+      return { slPips: null, tpPips: null };
+    }
+
+    let slPips: number | null = null;
+    let tpPips: number | null = null;
+
+    if (slVal) {
+      const distance = Math.abs(entryVal - slVal);
+      slPips = Math.round(distance / pipSize);
+    }
+
+    if (tpVal) {
+      const distance = Math.abs(tpVal - entryVal);
+      tpPips = Math.round(distance / pipSize);
+    }
+
+    return { slPips, tpPips };
+  }, [entry, stopLoss, takeProfit, instrument]);
+
+  // Auto-detect category from instrument
+  const handleInstrumentChange = (value: string) => {
+    setInstrument(value);
+    const sym = value.toUpperCase();
+    if (sym.includes('XAU') || sym.includes('XAG') || sym.includes('OIL') || sym.includes('NATGAS')) {
+      setCategory('COMMODITIES');
+    } else if (sym.includes('.US') || sym.includes('AAPL') || sym.includes('TSLA') || sym.includes('AMZN') || sym.includes('MSFT') || sym.includes('GOOG')) {
+      setCategory('STOCKS');
+    } else {
+      setCategory('FOREX');
+    }
+  };
+
   const handleSubmit = () => {
     if (!instrument || !entry || !stopLoss || !takeProfit || !pnl) return;
+
+    const entryVal = parseFloat(entry);
+    const slVal = parseFloat(stopLoss);
+    const pipSize = getPipSize(instrument);
+    const slPips = pipSize > 0 ? Math.round(Math.abs(entryVal - slVal) / pipSize) : 0;
 
     const trade: Trade = {
       id: Date.now(),
@@ -53,8 +108,8 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
       instrument: instrument.toUpperCase(),
       category,
       direction,
-      entry: parseFloat(entry),
-      stopLoss: parseFloat(stopLoss),
+      entry: entryVal,
+      stopLoss: slVal,
       takeProfit: parseFloat(takeProfit),
       pnl: parseFloat(pnl),
       pnlR: pnlR ? parseFloat(pnlR) : parseFloat(pnl) > 0 ? 1.0 : -1.0,
@@ -127,7 +182,7 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
               <Input
                 placeholder="ex: EUR/USD"
                 value={instrument}
-                onChange={e => setInstrument(e.target.value)}
+                onChange={e => handleInstrumentChange(e.target.value)}
                 className="bg-muted border-border text-foreground text-sm h-10 rounded-xl placeholder:text-muted-foreground/50"
               />
             </div>
@@ -176,7 +231,7 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
             </div>
           </div>
 
-          {/* Row 4: Entry, SL, TP */}
+          {/* Row 4: Entry, SL, TP with pip calculations */}
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground font-medium">Entree</Label>
@@ -190,7 +245,12 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground font-medium">Stop Loss</Label>
+              <Label className="text-xs text-muted-foreground font-medium">
+                Stop Loss
+                {pipCalculations.slPips !== null && (
+                  <span className="ml-1.5 text-[#ef4444] font-semibold">{pipCalculations.slPips} pips</span>
+                )}
+              </Label>
               <Input
                 type="number"
                 step="any"
@@ -201,7 +261,12 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground font-medium">Take Profit</Label>
+              <Label className="text-xs text-muted-foreground font-medium">
+                Take Profit
+                {pipCalculations.tpPips !== null && (
+                  <span className="ml-1.5 text-[#22c55e] font-semibold">{pipCalculations.tpPips} pips</span>
+                )}
+              </Label>
               <Input
                 type="number"
                 step="any"
@@ -212,6 +277,28 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
               />
             </div>
           </div>
+
+          {/* Pip info bar */}
+          {pipCalculations.slPips !== null && pipCalculations.tpPips !== null && (
+            <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50 border border-border">
+              <div className="flex items-center gap-4">
+                <div className="text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase">SL</p>
+                  <p className="text-sm font-bold text-[#ef4444]">{pipCalculations.slPips} pips</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase">TP</p>
+                  <p className="text-sm font-bold text-[#22c55e]">{pipCalculations.tpPips} pips</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase">Ratio</p>
+                  <p className="text-sm font-bold text-[#ff6b2b]">
+                    {pipCalculations.slPips > 0 ? (pipCalculations.tpPips / pipCalculations.slPips).toFixed(1) : '-'}:1
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Row 5: P&L, R-Multiple, Type */}
           <div className="grid grid-cols-3 gap-3">
