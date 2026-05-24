@@ -88,6 +88,24 @@ export async function POST(request: NextRequest) {
       path: '/',
     });
 
+    // Set non-httpOnly subscription cookie for middleware (7-day trial)
+    response.cookies.set('tv_sub', 'active', {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7,
+      path: '/',
+    });
+
+    // Set role cookie for middleware
+    response.cookies.set('tv_role', 'user', {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 30,
+      path: '/',
+    });
+
     return response;
   } catch (error) {
     console.error('[TradeVault] Register error:', error);

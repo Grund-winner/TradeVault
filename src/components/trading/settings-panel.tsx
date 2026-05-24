@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Save, LogOut, Moon, Sun, Loader2, Check } from 'lucide-react';
+import { Settings, Save, LogOut, Moon, Sun, Loader2, Check, Crown, ExternalLink } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -34,6 +34,8 @@ export default function SettingsPanel({
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
+  const [subActive, setSubActive] = useState(false);
+  const [subEndDate, setSubEndDate] = useState<string | null>(null);
 
   // Fetch current settings when panel opens
   const fetchSettings = useCallback(async () => {
@@ -45,6 +47,10 @@ export default function SettingsPanel({
         setSiteName(data.siteName || 'TradeVault');
         setSiteSubtitle(data.siteSubtitle || 'Analytics Pro');
         setTheme(data.theme || 'dark');
+        if (data.subscription) {
+          setSubActive(data.subscription.active);
+          setSubEndDate(data.subscription.endDate);
+        }
       }
     } catch {
       // Use defaults on error
@@ -210,6 +216,52 @@ export default function SettingsPanel({
                       onCheckedChange={handleThemeToggle}
                       className="data-[state=checked]:bg-primary"
                     />
+                  </div>
+                </motion.div>
+                {/* Divider */}
+                <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+
+                {/* Subscription Info */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.15 }}
+                  className="space-y-3"
+                >
+                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Abonnement
+                  </Label>
+                  <div className="p-4 rounded-xl bg-muted border border-border">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#ff6b2b]/20 to-[#ff4500]/10 flex items-center justify-center">
+                          <Crown className="h-4 w-4 text-[#ff6b2b]" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">Plan Pro</p>
+                          <p className="text-[11px] text-muted-foreground">25 EUR / mois</p>
+                        </div>
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
+                        subActive
+                          ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                          : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                      }`}>
+                        {subActive ? 'Actif' : 'Expire'}
+                      </span>
+                    </div>
+                    {subEndDate && subActive && (
+                      <p className="text-[11px] text-muted-foreground">
+                        Expire le {new Date(subEndDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </p>
+                    )}
+                    <a
+                      href="/pricing"
+                      className="flex items-center gap-1.5 text-[11px] text-primary hover:text-primary/80 font-medium mt-2 transition-colors"
+                    >
+                      Gerer l&apos;abonnement
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
                   </div>
                 </motion.div>
               </>

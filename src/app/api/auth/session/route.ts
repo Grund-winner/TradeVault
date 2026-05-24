@@ -26,6 +26,7 @@ export async function GET() {
       role: user.role,
       locale: user.locale,
       initialBalance: user.initialBalance,
+      isActive: user.isActive,
       subscription: sub,
     });
   } catch (error) {

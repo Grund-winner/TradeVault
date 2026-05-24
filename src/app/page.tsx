@@ -15,7 +15,7 @@ import CalendarView from '@/components/trading/calendar-view';
 import AddTradeDialog from '@/components/trading/add-trade-dialog';
 import SettingsPanel from '@/components/trading/settings-panel';
 import { computeKPIs, type Trade } from '@/lib/mock-data';
-import { Plus, TrendingUp, FileText } from 'lucide-react';
+import { Plus, TrendingUp, FileText, AlertTriangle, CreditCard } from 'lucide-react';
 
 const defaultFilters: Filters = {
   year: 'Tous',
@@ -88,11 +88,21 @@ export default function Home() {
         if (data.siteName) setSiteName(data.siteName);
         if (data.siteSubtitle) setSiteSubtitle(data.siteSubtitle);
         if (data.role) setUserRole(data.role);
+        if (data.subscription) setSubscription(data.subscription);
         // Apply theme from saved settings
         if (data.theme === 'light') {
           document.documentElement.classList.remove('dark');
         } else {
           document.documentElement.classList.add('dark');
+        }
+        // Subscription check: redirect to pricing if expired and not admin/host
+        if (data.subscription && !data.subscription.active && data.role && data.role === 'user') {
+          const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.get('from') !== 'pricing') {
+            setRedirectingToPricing(true);
+            window.location.href = '/pricing?expired=true';
+            return;
+          }
         }
       }
     } catch {
@@ -161,9 +171,15 @@ export default function Home() {
     }
   };
 
-  // Logout: clear cookie and redirect
-  const handleLogout = () => {
-    document.cookie = 'tv_session=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+  // Subscription state
+  const [subscription, setSubscription] = useState<{ active: boolean; endDate: string | null } | null>(null);
+  const [redirectingToPricing, setRedirectingToPricing] = useState(false);
+
+  // Logout: call API to clear httpOnly cookie then redirect
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch { /* ignore */ }
     window.location.href = '/login';
   };
 
@@ -199,6 +215,20 @@ export default function Home() {
     );
   }
 
+  // Show redirecting state if subscription expired
+  if (redirectingToPricing) {
+    return (
+      <div className="flex min-h-screen bg-background items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#ff6b2b] to-[#ff4500] flex items-center justify-center animate-pulse">
+            <CreditCard className="h-4 w-4 text-white" />
+          </div>
+          <span className="text-sm text-muted-foreground">Redirection vers la page d'abonnement...</span>
+        </div>
+      </div>
+    );
+  }
+
   const hasTrades = allTradeData.length > 0;
   const hasFilteredTrades = filteredTrades.length > 0;
 
@@ -220,6 +250,30 @@ export default function Home() {
         />
 
         <div className="px-4 md:px-6 py-6 max-w-[1600px] mx-auto">
+          {/* Subscription expiring soon banner */}
+          {subscription?.active && subscription.endDate && (() => {
+            const daysLeft = Math.ceil((new Date(subscription.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+            if (daysLeft <= 3 && daysLeft > 0) {
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center justify-between p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 mb-4"
+                >
+                  <div className="flex items-center gap-3">
+                    <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0" />
+                    <p className="text-sm text-amber-200">
+                      Votre abonnement expire dans <span className="font-bold">{daysLeft} jour{daysLeft > 1 ? 's' : ''}</span>. Renouvelez pour ne pas perdre l&apos;acces.
+                    </p>
+                  </div>
+                  <a href="/pricing" className="text-xs font-semibold text-amber-400 hover:text-amber-300 transition-colors whitespace-nowrap ml-4">
+                    Renouveler
+                  </a>
+                </motion.div>
+              );
+            }
+            return null;
+          })()}
           {/* Filters */}
           <FiltersBar
             filters={filters}

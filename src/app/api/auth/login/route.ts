@@ -27,16 +27,18 @@ export async function POST(request: NextRequest) {
       siteName: string;
       siteSubtitle: string;
       theme: string;
+      role: string;
+      isActive: boolean;
       createdAt: string;
       updatedAt: string;
     }>>(
-      `SELECT * FROM users WHERE email = $1`,
+      `SELECT * FROM users WHERE email = $1 AND "isActive" = true`,
       email.toLowerCase().trim()
     );
 
     if (users.length === 0) {
       return NextResponse.json(
-        { error: 'Identifiants invalides' },
+        { error: 'Identifiants invalides ou compte desactive' },
         { status: 401 }
       );
     }
@@ -46,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     if (user.password !== hashedPassword) {
       return NextResponse.json(
-        { error: 'Identifiants invalides' },
+        { error: 'Identifiants invalides ou compte desactive' },
         { status: 401 }
       );
     }
@@ -60,6 +62,24 @@ export async function POST(request: NextRequest) {
       user.id
     );
 
+    // Check subscription status for tv_sub cookie
+    let subStatus = 'expired';
+    let subMaxAge = 60 * 60 * 24 * 30; // 30 days default
+    try {
+      const subs = await db.$queryRawUnsafe<Array<{ endDate: string }>>(
+        `SELECT "endDate" FROM subscriptions WHERE "userId" = $1 AND status = 'active' AND "endDate" > NOW() ORDER BY "endDate" DESC LIMIT 1`,
+        user.id
+      );
+      if (subs.length > 0) {
+        subStatus = 'active';
+        const endMs = new Date(subs[0].endDate).getTime();
+        const nowMs = Date.now();
+        subMaxAge = Math.max(0, Math.floor((endMs - nowMs) / 1000));
+      }
+    } catch {
+      // Default to expired
+    }
+
     const { password: _, ...userWithoutPassword } = user;
 
     const response = NextResponse.json(
@@ -69,6 +89,24 @@ export async function POST(request: NextRequest) {
 
     response.cookies.set('tv_session', sessionToken, {
       httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 30,
+      path: '/',
+    });
+
+    // Set non-httpOnly subscription cookie for middleware
+    response.cookies.set('tv_sub', subStatus, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: subMaxAge,
+      path: '/',
+    });
+
+    // Set role cookie for middleware
+    response.cookies.set('tv_role', user.role, {
+      httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 30,
