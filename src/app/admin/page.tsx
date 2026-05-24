@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import {
   LayoutDashboard, Users, CreditCard, ArrowLeft, Shield, Search,
   Eye, Ban, CheckCircle, DollarSign, TrendingUp, UserPlus, Clock,
-  AlertTriangle, Loader2, RefreshCw, LogIn, Crown, Gift
+  AlertTriangle, Loader2, RefreshCw, Crown, Gift
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -186,7 +186,7 @@ export default function AdminPage() {
     );
   }
 
-  // Not admin - show clear error
+  // Not admin - show clean error
   if (!isAdmin) {
     return (
       <div className="flex min-h-screen bg-background items-center justify-center">
@@ -194,33 +194,17 @@ export default function AdminPage() {
           <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto">
             <AlertTriangle className="h-8 w-8 text-red-500" />
           </div>
-          <h2 className="text-xl font-bold text-foreground">Accès Admin Refusé</h2>
-          <p className="text-sm text-muted-foreground">{error || 'Vous n\'avez pas les permissions nécessaires.'}</p>
-          <div className="space-y-3 pt-2">
-            <p className="text-xs text-muted-foreground/60">
-              Pour configurer votre compte admin, visitez l&apos;endpoint de configuration après vous être connecté.
-            </p>
-            <div className="p-3 rounded-xl bg-muted border border-border">
-              <p className="text-[10px] text-muted-foreground mb-1">Endpoint setup :</p>
-              <code className="text-xs text-primary break-all">/api/auth/setup-admin?email=votre@email.com</code>
-            </div>
-            <div className="flex gap-3">
-              <Link
-                href="/api/auth/setup-admin"
-                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#ff6b2b] text-white font-medium text-sm hover:bg-[#ff4500] transition-all"
-              >
-                <Shield className="h-4 w-4" />
-                Creer compte Admin
-              </Link>
-              <Link
-                href="/login"
-                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-muted border border-border text-foreground font-medium text-sm hover:bg-accent transition-all"
-              >
-                <LogIn className="h-4 w-4" />
-                Se connecter
-              </Link>
-            </div>
-          </div>
+          <h2 className="text-xl font-bold text-foreground">Accès Refusé</h2>
+          <p className="text-sm text-muted-foreground">
+            {error || 'Vous n\'avez pas les permissions nécessaires pour accéder à cette page.'}
+          </p>
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-muted border border-border text-foreground font-medium text-sm hover:bg-accent transition-all"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Retour au tableau de bord
+          </Link>
         </div>
       </div>
     );

@@ -253,7 +253,6 @@ export default function Home() {
         <Header
           siteName={siteName}
           onSettingsClick={() => setShowSettings(true)}
-          userRole={userRole}
         />
 
         <div className="px-4 md:px-6 py-6 max-w-[1600px] mx-auto">
