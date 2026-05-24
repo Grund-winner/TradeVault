@@ -16,6 +16,9 @@ import AddTradeDialog from '@/components/trading/add-trade-dialog';
 import SettingsPanel from '@/components/trading/settings-panel';
 import AiChatWidget from '@/components/ai/chat-widget';
 import AiAnalysis from '@/components/ai/analysis-panel';
+import CommunityPanel from '@/components/community/community-panel';
+import BacktestPanel from '@/components/trading/backtest-panel';
+import ExportPanel from '@/components/trading/export-panel';
 import { computeKPIs, type Trade } from '@/lib/mock-data';
 import { Plus, TrendingUp, FileText, AlertTriangle, CreditCard } from 'lucide-react';
 
@@ -424,6 +427,24 @@ export default function Home() {
               {activeTab === 'ai' && (
                 <motion.div key="ai" variants={pageVariants} initial="initial" animate="animate" exit="exit">
                   <AiAnalysis trades={filteredTrades} />
+                </motion.div>
+              )}
+
+              {activeTab === 'community' && (
+                <motion.div key="community" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+                  <CommunityPanel userRole={userRole} hasSubscription={!!subscription?.active} />
+                </motion.div>
+              )}
+
+              {activeTab === 'backtest' && (
+                <motion.div key="backtest" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+                  <BacktestPanel />
+                </motion.div>
+              )}
+
+              {activeTab === 'export' && (
+                <motion.div key="export" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+                  <ExportPanel trades={filteredTrades} />
                 </motion.div>
               )}
             </AnimatePresence>
