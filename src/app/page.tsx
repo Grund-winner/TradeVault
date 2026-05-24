@@ -14,6 +14,8 @@ import DetailedAnalysis from '@/components/trading/detailed-analysis';
 import CalendarView from '@/components/trading/calendar-view';
 import AddTradeDialog from '@/components/trading/add-trade-dialog';
 import SettingsPanel from '@/components/trading/settings-panel';
+import AiChatWidget from '@/components/ai/chat-widget';
+import AiAnalysis from '@/components/ai/analysis-panel';
 import { computeKPIs, type Trade } from '@/lib/mock-data';
 import { Plus, TrendingUp, FileText, AlertTriangle, CreditCard } from 'lucide-react';
 
@@ -418,6 +420,12 @@ export default function Home() {
                   <CalendarView trades={filteredTrades} />
                 </motion.div>
               )}
+
+              {activeTab === 'ai' && (
+                <motion.div key="ai" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+                  <AiAnalysis trades={filteredTrades} />
+                </motion.div>
+              )}
             </AnimatePresence>
           )}
 
@@ -437,7 +445,10 @@ export default function Home() {
         </div>
       </main>
 
-      {/* AddTradeDialog at page level - always available regardless of tab/trade state */}
+      {/* AI Chat Widget - always visible */}
+      <AiChatWidget />
+
+      {/* AddTradeDialog at page level */}
       <AddTradeDialog
         open={showAddDialog}
         onOpenChange={setShowAddDialog}

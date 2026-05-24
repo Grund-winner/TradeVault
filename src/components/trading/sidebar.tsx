@@ -2,11 +2,11 @@
 
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, BookOpen, BarChart3, CalendarDays, Menu, X, TrendingUp } from 'lucide-react';
+import { LayoutDashboard, BookOpen, BarChart3, CalendarDays, Menu, X, TrendingUp, Brain } from 'lucide-react';
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
 import { getEquityCurve, type Trade } from '@/lib/mock-data';
 
-export type TabId = 'dashboard' | 'journal' | 'detailed' | 'calendar';
+export type TabId = 'dashboard' | 'journal' | 'detailed' | 'calendar' | 'ai';
 
 interface SidebarProps {
   activeTab: TabId;
@@ -20,6 +20,7 @@ const navItems: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'dashboard', label: 'Tableau de bord', icon: <LayoutDashboard className="h-5 w-5" /> },
   { id: 'journal', label: 'Journal', icon: <BookOpen className="h-5 w-5" /> },
   { id: 'detailed', label: 'Detaille', icon: <BarChart3 className="h-5 w-5" /> },
+  { id: 'ai', label: 'IA Coach', icon: <Brain className="h-5 w-5" /> },
   { id: 'calendar', label: 'Calendrier', icon: <CalendarDays className="h-5 w-5" /> },
 ];
 
