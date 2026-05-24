@@ -98,7 +98,7 @@ export default function AiChatWidget({ userId }: AiChatWidgetProps) {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 right-6 w-14 h-14 rounded-2xl bg-gradient-to-br from-[#ff6b2b] to-[#ff4500] text-white shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all z-50 flex items-center justify-center"
+            className="fixed bottom-24 right-6 w-14 h-14 rounded-2xl bg-gradient-to-br from-[#ff6b2b] to-[#ff4500] text-white shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all z-50 flex items-center justify-center lg:bottom-6"
           >
             <MessageCircle className="h-6 w-6" />
           </motion.button>
@@ -113,7 +113,7 @@ export default function AiChatWidget({ userId }: AiChatWidgetProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-6 right-6 w-[380px] max-h-[560px] rounded-2xl bg-card border border-border shadow-2xl shadow-black/30 z-50 flex flex-col overflow-hidden"
+            className="fixed bottom-24 right-6 w-[380px] max-w-[calc(100vw-2rem)] max-h-[560px] rounded-2xl bg-card border border-border shadow-2xl shadow-black/30 z-50 flex flex-col overflow-hidden lg:bottom-6"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#ff6b2b] to-[#ff4500] text-white">
