@@ -145,7 +145,8 @@ export async function ensureDatabase() {
     '"mtApiKey" TEXT',
     '"mtAccountId" TEXT',
     '"mtServer" TEXT',
-    '"mtPlatform" TEXT',
+    '"mtPlatform" TEXT DEFAULT \'mt4\'',
+    '"mtLastSync" TIMESTAMP',
   ];
   for (const colDef of userColumns) {
     try {

@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   LayoutDashboard, Users, CreditCard, ArrowLeft, Shield, Search,
-  Eye, Ban, CheckCircle, DollarSign, TrendingUp, UserPlus, Clock
+  Eye, Ban, CheckCircle, DollarSign, TrendingUp, UserPlus, Clock,
+  AlertTriangle, Loader2, RefreshCw, LogIn
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -38,28 +39,59 @@ export default function AdminPage() {
   const [userDetail, setUserDetail] = useState<Record<string, unknown> | null>(null);
   const [userTrades, setUserTrades] = useState<unknown[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const fetchStats = useCallback(async () => {
-    try {
-      const res = await fetch('/api/admin/stats');
-      if (res.ok) setStats(await res.json());
-    } catch { /* silent */ }
-  }, []);
-
-  const fetchUsers = useCallback(async () => {
+  const fetchAdminData = useCallback(async () => {
     setLoading(true);
+    setError(null);
+
     try {
-      const res = await fetch('/api/admin/users');
-      if (res.ok) setUsers(await res.json());
-    } catch { /* silent */ }
-    setLoading(false);
+      // Check admin access by fetching stats
+      const statsRes = await fetch('/api/admin/stats');
+      if (statsRes.status === 403) {
+        setIsAdmin(false);
+        setError('Accès refusé. Vous devez être connecté en tant qu\'administrateur.');
+        setLoading(false);
+        return;
+      }
+      if (statsRes.status === 401) {
+        setIsAdmin(false);
+        setError('Non authentifié. Connectez-vous d\'abord.');
+        setLoading(false);
+        return;
+      }
+      if (!statsRes.ok) {
+        const errData = await statsRes.json().catch(() => ({}));
+        setError(`Erreur serveur: ${errData.error || statsRes.statusText}`);
+        setLoading(false);
+        return;
+      }
+
+      setIsAdmin(true);
+      const statsData = await statsRes.json();
+      setStats(statsData);
+
+      // Fetch users
+      const usersRes = await fetch('/api/admin/users');
+      if (usersRes.ok) {
+        const usersData = await usersRes.json();
+        setUsers(usersData);
+      } else {
+        setError('Impossible de charger les utilisateurs.');
+      }
+    } catch (err) {
+      setError(`Erreur de connexion: ${err instanceof Error ? err.message : 'Inconnue'}`);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
-    fetchStats();
-    fetchUsers();
-  }, [fetchStats, fetchUsers]);
+    fetchAdminData();
+  }, [fetchAdminData]);
 
   const viewUser = async (user: UserRow) => {
     setSelectedUser(user);
@@ -80,8 +112,14 @@ export default function AdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isActive: !isActive }),
       });
-      fetchUsers();
+      fetchAdminData();
     } catch { /* silent */ }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchAdminData();
+    setRefreshing(false);
   };
 
   const filteredUsers = users.filter(u =>
@@ -94,6 +132,81 @@ export default function AdminPage() {
     { id: 'trades', label: 'Trades', icon: TrendingUp },
     { id: 'subscriptions', label: 'Abonnements', icon: CreditCard },
   ];
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-background items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <Shield className="h-8 w-8 text-primary animate-pulse" />
+          <span className="text-sm text-muted-foreground">Chargement du panneau admin...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Not admin - show clear error
+  if (!isAdmin) {
+    return (
+      <div className="flex min-h-screen bg-background items-center justify-center">
+        <div className="max-w-md w-full mx-4 p-8 rounded-2xl bg-card border border-border text-center space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto">
+            <AlertTriangle className="h-8 w-8 text-red-500" />
+          </div>
+          <h2 className="text-xl font-bold text-foreground">Accès Admin Refusé</h2>
+          <p className="text-sm text-muted-foreground">{error || 'Vous n\'avez pas les permissions nécessaires.'}</p>
+          <div className="space-y-3 pt-2">
+            <p className="text-xs text-muted-foreground/60">
+              Pour configurer votre compte admin, visitez l&apos;endpoint de configuration après vous être connecté.
+            </p>
+            <div className="p-3 rounded-xl bg-muted border border-border">
+              <p className="text-[10px] text-muted-foreground mb-1">Endpoint setup :</p>
+              <code className="text-xs text-primary break-all">/api/auth/setup-admin?email=votre@email.com</code>
+            </div>
+            <div className="flex gap-3">
+              <Link
+                href="/login"
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#ff6b2b] text-white font-medium text-sm hover:bg-[#ff4500] transition-all"
+              >
+                <LogIn className="h-4 w-4" />
+                Se connecter
+              </Link>
+              <Link
+                href="/"
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-muted border border-border text-foreground font-medium text-sm hover:bg-accent transition-all"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Dashboard
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state but IS admin
+  if (error && users.length === 0) {
+    return (
+      <div className="flex min-h-screen bg-background items-center justify-center">
+        <div className="max-w-md w-full mx-4 p-8 rounded-2xl bg-card border border-border text-center space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto">
+            <AlertTriangle className="h-8 w-8 text-amber-500" />
+          </div>
+          <h2 className="text-xl font-bold text-foreground">Erreur de Chargement</h2>
+          <p className="text-sm text-muted-foreground">{error}</p>
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="flex items-center justify-center gap-2 mx-auto px-6 py-3 rounded-xl bg-[#ff6b2b] text-white font-medium text-sm hover:bg-[#ff4500] transition-all"
+          >
+            {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            Réessayer
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -126,20 +239,39 @@ export default function AdminPage() {
           ))}
         </nav>
 
-        <Link href="/" className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-all">
-          <ArrowLeft className="h-4 w-4" />
-          Retour au dashboard
-        </Link>
+        <div className="space-y-2">
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            Actualiser
+          </button>
+          <Link href="/" className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-all">
+            <ArrowLeft className="h-4 w-4" />
+            Retour au dashboard
+          </Link>
+        </div>
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 p-6 overflow-y-auto">
+        {/* Error banner if partial error */}
+        {error && (
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 mb-6">
+            <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0" />
+            <p className="text-xs text-amber-200">{error}</p>
+            <button onClick={handleRefresh} className="ml-auto text-xs text-amber-400 hover:text-amber-300 whitespace-nowrap">Réessayer</button>
+          </div>
+        )}
+
         {activeTab === 'dashboard' && stats && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
             <h2 className="text-xl font-bold text-foreground">Dashboard Admin</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatCard icon={Users} label="Total Utilisateurs" value={stats.users.total.toString()} sub={`${stats.users.active} actifs`} color="text-blue-500" />
+              <StatCard icon={Users} label="Total Utilisateurs" value={stats.users.total.toString()} sub={`${stats.users.active} actifs, ${stats.users.admins} admins`} color="text-blue-500" />
               <StatCard icon={CheckCircle} label="Abonnements Actifs" value={stats.subscriptions.active.toString()} sub={`${stats.subscriptions.trial} essais`} color="text-green-500" />
               <StatCard icon={DollarSign} label="Revenu Mensuel" value={`${stats.subscriptions.revenue}€`} sub="estime" color="text-primary" />
               <StatCard icon={TrendingUp} label="Total Trades" value={stats.trades.total.toString()} sub={`P&L: ${stats.trades.totalPnl > 0 ? '+' : ''}${stats.trades.totalPnl}€`} color={stats.trades.totalPnl >= 0 ? 'text-green-500' : 'text-red-500'} />
@@ -163,8 +295,13 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {loading ? (
-              <div className="text-center py-12 text-muted-foreground">Chargement...</div>
+            {filteredUsers.length === 0 ? (
+              <div className="text-center py-16 rounded-2xl border border-border bg-card">
+                <Users className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">
+                  {users.length === 0 ? 'Aucun utilisateur inscrit pour le moment.' : 'Aucun utilisateur trouvé pour cette recherche.'}
+                </p>
+              </div>
             ) : (
               <div className="rounded-2xl border border-border bg-card overflow-hidden">
                 <table className="w-full">
@@ -220,9 +357,6 @@ export default function AdminPage() {
                     ))}
                   </tbody>
                 </table>
-                {filteredUsers.length === 0 && (
-                  <div className="text-center py-12 text-muted-foreground text-sm">Aucun utilisateur trouve</div>
-                )}
               </div>
             )}
           </motion.div>
@@ -270,7 +404,7 @@ export default function AdminPage() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">Aucun trade</p>
+                <p className="text-sm text-muted-foreground">Aucun trade pour cet utilisateur.</p>
               )}
             </div>
           </motion.div>
