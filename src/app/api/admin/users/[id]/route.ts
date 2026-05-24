@@ -53,6 +53,22 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     values.push(id);
 
     const result = await db.$queryRawUnsafe<Array<Record<string, unknown>>>(query, ...values);
+
+    // Grant subscription if requested
+    if (body.grantSubscription && result.length > 0) {
+      const userId = result[0].id as string;
+      const existingSub = await db.$queryRawUnsafe<Array<{ id: string }>>(
+        `SELECT id FROM subscriptions WHERE "userId" = $1 AND status = 'active' AND "endDate" > NOW() LIMIT 1`, userId
+      );
+      if (existingSub.length === 0) {
+        await db.$executeRawUnsafe(
+          `INSERT INTO subscriptions (id, "userId", plan, status, "paymentMethod", "paymentRef", amount, currency, "startDate", "endDate", "createdAt", "updatedAt")
+           VALUES ($1, $2, 'pro', 'active', 'admin_grant', '', 0, 'EUR', NOW(), NOW() + INTERVAL '1 year', NOW(), NOW())`,
+          `sub_grant_${Date.now()}`, userId
+        );
+      }
+    }
+
     return NextResponse.json({ user: result[0] });
   } catch (error) {
     console.error('[Admin] Update user error:', error);

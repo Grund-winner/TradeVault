@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import {
   LayoutDashboard, Users, CreditCard, ArrowLeft, Shield, Search,
   Eye, Ban, CheckCircle, DollarSign, TrendingUp, UserPlus, Clock,
-  AlertTriangle, Loader2, RefreshCw, LogIn
+  AlertTriangle, Loader2, RefreshCw, LogIn, Crown, Gift
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -116,6 +116,47 @@ export default function AdminPage() {
     } catch { /* silent */ }
   };
 
+  const promoteToAdmin = async (user: UserRow) => {
+    if (!confirm(`Promouvoir ${user.email} en tant qu'admin ?`)) return;
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: 'admin' }),
+      });
+      if (res.ok) {
+        fetchAdminData();
+      }
+    } catch { /* silent */ }
+  };
+
+  const demoteToUser = async (user: UserRow) => {
+    if (!confirm(`Retirer les droits admin de ${user.email} ?`)) return;
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: 'user' }),
+      });
+      if (res.ok) {
+        fetchAdminData();
+      }
+    } catch { /* silent */ }
+  };
+
+  const grantSubscription = async (userId: string) => {
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ grantSubscription: true }),
+      });
+      if (res.ok) {
+        fetchAdminData();
+      }
+    } catch { /* silent */ }
+  };
+
   const handleRefresh = async () => {
     setRefreshing(true);
     await fetchAdminData();
@@ -165,18 +206,18 @@ export default function AdminPage() {
             </div>
             <div className="flex gap-3">
               <Link
-                href="/login"
+                href="/api/auth/setup-admin"
                 className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-[#ff6b2b] text-white font-medium text-sm hover:bg-[#ff4500] transition-all"
+              >
+                <Shield className="h-4 w-4" />
+                Creer compte Admin
+              </Link>
+              <Link
+                href="/login"
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-muted border border-border text-foreground font-medium text-sm hover:bg-accent transition-all"
               >
                 <LogIn className="h-4 w-4" />
                 Se connecter
-              </Link>
-              <Link
-                href="/"
-                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-muted border border-border text-foreground font-medium text-sm hover:bg-accent transition-all"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Dashboard
               </Link>
             </div>
           </div>
@@ -344,10 +385,25 @@ export default function AdminPage() {
                           {new Date(user.createdAt).toLocaleDateString('fr-FR')}
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <div className="flex items-center justify-end gap-2">
+                          <div className="flex items-center justify-end gap-1">
                             <button onClick={() => viewUser(user)} className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all" title="Voir">
                               <Eye className="h-4 w-4" />
                             </button>
+                            {user.role !== 'admin' && user.role !== 'host' && (
+                              <button onClick={() => promoteToAdmin(user)} className="p-2 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all" title="Promouvoir Admin">
+                                <Crown className="h-4 w-4" />
+                              </button>
+                            )}
+                            {(user.role === 'admin' || user.role === 'host') && (
+                              <button onClick={() => demoteToUser(user)} className="p-2 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500 transition-all" title="Retirer Admin">
+                                <Shield className="h-4 w-4" />
+                              </button>
+                            )}
+                            {user.subStatus !== 'active' && (
+                              <button onClick={() => grantSubscription(user.id)} className="p-2 rounded-lg hover:bg-green-500/10 text-muted-foreground hover:text-green-500 transition-all" title="Donner abonnement">
+                                <Gift className="h-4 w-4" />
+                              </button>
+                            )}
                             <button onClick={() => toggleUserActive(user.id, user.isActive)} className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all" title={user.isActive ? 'Desactiver' : 'Activer'}>
                               {user.isActive ? <Ban className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
                             </button>
