@@ -49,6 +49,11 @@ model User {
   locale        String    @default("fr")
   sessionToken  String?   @map("sessionToken")
   isActive      Boolean   @default(true)
+  mtApiKey      String?   @map("mtApiKey")
+  mtAccountId   String?   @map("mtAccountId")
+  mtServer      String?   @map("mtServer")
+  mtPlatform    String?   @default("mt4") @map("mtPlatform")
+  mtLastSync    DateTime? @map("mtLastSync")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

@@ -2,18 +2,30 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Save, LogOut, Moon, Sun, Loader2, Check, Crown, ExternalLink, Wallet, Link2 } from 'lucide-react';
+import { Settings, Save, LogOut, Moon, Sun, Loader2, Check, Crown, ExternalLink, Wallet, Link2, Key, Download, RefreshCw, Copy, CheckCircle2, Zap, Monitor } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
 } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+interface MTConnectionData {
+  hasApiKey: boolean;
+  apiKeyMasked: string | null;
+  accountId: string | null;
+  server: string | null;
+  platform: string | null;
+  lastSync: string | null;
+}
 
 interface SettingsPanelProps {
   open: boolean;
@@ -38,6 +50,18 @@ export default function SettingsPanel({
   const [subEndDate, setSubEndDate] = useState<string | null>(null);
   const [initialBalance, setInitialBalance] = useState('');
 
+  // MT4/MT5 state
+  const [mtData, setMtData] = useState<MTConnectionData | null>(null);
+  const [mtPlatform, setMtPlatform] = useState('mt4');
+  const [mtAccountId, setMtAccountId] = useState('');
+  const [mtServer, setMtServer] = useState('');
+  const [newApiKey, setNewApiKey] = useState('');
+  const [isGeneratingKey, setIsGeneratingKey] = useState(false);
+  const [showFullKey, setShowFullKey] = useState(false);
+  const [copiedKey, setCopiedKey] = useState(false);
+
+  const WEBHOOK_URL = 'https://trade-vault-xi.vercel.app/api/webhook/mt4';
+
   // Fetch current settings when panel opens
   const fetchSettings = useCallback(async () => {
     setIsLoading(true);
@@ -53,9 +77,14 @@ export default function SettingsPanel({
           setSubEndDate(data.subscription.endDate);
         }
         if (data.initialBalance) setInitialBalance(String(data.initialBalance));
+        if (data.mt) {
+          setMtData(data.mt);
+          if (data.mt.platform) setMtPlatform(data.mt.platform);
+          if (data.mt.accountId) setMtAccountId(data.mt.accountId);
+          if (data.mt.server) setMtServer(data.mt.server);
+        }
       }
     } catch {
-      // Use defaults on error
       setSiteName('TradeVault');
       setSiteSubtitle('Analytics Pro');
       setTheme('dark');
@@ -67,6 +96,9 @@ export default function SettingsPanel({
   useEffect(() => {
     if (open) {
       fetchSettings();
+      setNewApiKey('');
+      setShowFullKey(false);
+      setCopiedKey(false);
     }
   }, [open, fetchSettings]);
 
@@ -77,7 +109,7 @@ export default function SettingsPanel({
       const res = await fetch('/api/auth/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ siteName, siteSubtitle, theme, initialBalance }),
+        body: JSON.stringify({ siteName, siteSubtitle, theme, initialBalance, mtAccountId, mtServer, mtPlatform }),
       });
 
       if (res.ok) {
@@ -100,13 +132,66 @@ export default function SettingsPanel({
     setTheme(newTheme);
   };
 
+  const handleGenerateApiKey = async () => {
+    setIsGeneratingKey(true);
+    try {
+      const res = await fetch('/api/settings/api-key', { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        setNewApiKey(data.apiKey);
+        setShowFullKey(true);
+        setMtData(prev => prev ? { ...prev, hasApiKey: true, apiKeyMasked: data.apiKey } : { hasApiKey: true, apiKeyMasked: data.apiKey, accountId: null, server: null, platform: 'mt4', lastSync: null });
+      }
+    } catch {
+      // Silently fail
+    } finally {
+      setIsGeneratingKey(false);
+    }
+  };
+
+  const handleCopyKey = async (key: string) => {
+    try {
+      await navigator.clipboard.writeText(key);
+      setCopiedKey(true);
+      setTimeout(() => setCopiedKey(false), 2000);
+    } catch {
+      // Fallback
+      const ta = document.createElement('textarea');
+      ta.value = key;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      setCopiedKey(true);
+      setTimeout(() => setCopiedKey(false), 2000);
+    }
+  };
+
+  const handleDownloadEA = (platform: 'mt4' | 'mt5') => {
+    window.open(`/api/settings/ea-download?platform=${platform}`, '_blank');
+  };
+
+  const getTimeSinceSync = (lastSyncStr: string | null): string => {
+    if (!lastSyncStr) return 'Jamais';
+    const lastSync = new Date(lastSyncStr);
+    const now = new Date();
+    const diffMs = now.getTime() - lastSync.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return "A l'instant";
+    if (diffMins < 60) return `Il y a ${diffMins} min`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `Il y a ${diffHours}h`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `Il y a ${diffDays}j`;
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
         className="w-full sm:max-w-md bg-popover border-l border-border p-0 overflow-y-auto"
       >
-        {/* Custom header - override the default close button styling */}
+        {/* Custom header */}
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-5 border-b border-border">
@@ -144,7 +229,6 @@ export default function SettingsPanel({
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
                   className="space-y-3"
                 >
                   <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -156,9 +240,6 @@ export default function SettingsPanel({
                     placeholder="TradeVault"
                     className="h-11 rounded-xl bg-muted border-border text-foreground placeholder:text-muted-foreground text-sm focus-visible:border-primary/50 focus-visible:ring-primary/20"
                   />
-                  <p className="text-[11px] text-muted-foreground/60">
-                    Ce nom s&apos;affiche dans l&apos;en-tete et la barre laterale.
-                  </p>
                 </motion.div>
 
                 {/* Site Subtitle */}
@@ -177,9 +258,6 @@ export default function SettingsPanel({
                     placeholder="Analytics Pro"
                     className="h-11 rounded-xl bg-muted border-border text-foreground placeholder:text-muted-foreground text-sm focus-visible:border-primary/50 focus-visible:ring-primary/20"
                   />
-                  <p className="text-[11px] text-muted-foreground/60">
-                    Sous-titre affiche sous le nom du site.
-                  </p>
                 </motion.div>
 
                 {/* Divider */}
@@ -220,6 +298,7 @@ export default function SettingsPanel({
                     />
                   </div>
                 </motion.div>
+
                 {/* Divider */}
                 <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
@@ -266,6 +345,7 @@ export default function SettingsPanel({
                     </a>
                   </div>
                 </motion.div>
+
                 {/* Divider */}
                 <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
@@ -300,29 +380,228 @@ export default function SettingsPanel({
                   </p>
                 </motion.div>
 
-                {/* MT4/MT5 Connection Info */}
+                {/* Divider */}
+                <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+
+                {/* ========== MT4/MT5 CONNECTION SECTION ========== */}
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: 0.25 }}
-                  className="space-y-3"
+                  className="space-y-4"
                 >
-                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    MetaTrader
-                  </Label>
-                  <div className="p-4 rounded-xl bg-muted border border-border">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500/20 to-blue-600/10 flex items-center justify-center">
-                        <Link2 className="h-4 w-4 text-blue-400" />
+                  <div className="flex items-center gap-2">
+                    <Monitor className="h-4 w-4 text-blue-400" />
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      MetaTrader 4 / 5
+                    </Label>
+                  </div>
+
+                  {/* MT Connection Card */}
+                  <div className="p-4 rounded-xl bg-muted border border-border space-y-4">
+                    {/* Status badge */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${mtData?.lastSync ? 'bg-green-400 animate-pulse' : 'bg-muted-foreground/30'}`} />
+                        <span className="text-xs font-medium text-foreground">
+                          {mtData?.hasApiKey ? 'Connecte' : 'Non configure'}
+                        </span>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">MT4 / MT5 Sync</p>
-                        <p className="text-[11px] text-muted-foreground">Connexion via Expert Advisor</p>
+                      {mtData?.lastSync && (
+                        <span className="text-[10px] text-muted-foreground">
+                          Derniere sync: {getTimeSinceSync(mtData.lastSync)}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Platform Selection */}
+                    <div className="space-y-2">
+                      <p className="text-[11px] text-muted-foreground font-medium">Plateforme</p>
+                      <Select value={mtPlatform} onValueChange={setMtPlatform}>
+                        <SelectTrigger className="h-9 rounded-lg bg-background border-border text-foreground text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-popover border-border">
+                          <SelectItem value="mt4">MetaTrader 4 (MT4)</SelectItem>
+                          <SelectItem value="mt5">MetaTrader 5 (MT5)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* MT Account ID */}
+                    <div className="space-y-2">
+                      <p className="text-[11px] text-muted-foreground font-medium">Numero de compte</p>
+                      <Input
+                        value={mtAccountId}
+                        onChange={(e) => setMtAccountId(e.target.value)}
+                        placeholder="ex: 12345678"
+                        className="h-9 rounded-lg bg-background border-border text-foreground text-sm placeholder:text-muted-foreground/50"
+                      />
+                    </div>
+
+                    {/* MT Server */}
+                    <div className="space-y-2">
+                      <p className="text-[11px] text-muted-foreground font-medium">Serveur</p>
+                      <Input
+                        value={mtServer}
+                        onChange={(e) => setMtServer(e.target.value)}
+                        placeholder="ex: ICMarketsSC-Demo"
+                        className="h-9 rounded-lg bg-background border-border text-foreground text-sm placeholder:text-muted-foreground/50"
+                      />
+                    </div>
+                  </div>
+
+                  {/* API Key Section */}
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500/5 to-blue-600/5 border border-blue-500/10 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Key className="h-4 w-4 text-blue-400" />
+                      <p className="text-xs font-semibold text-foreground">Cle API</p>
+                    </div>
+
+                    {/* Show existing or new key */}
+                    {(mtData?.hasApiKey || newApiKey) && (
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 px-3 py-2 rounded-lg bg-background border border-border font-mono text-xs text-foreground truncate">
+                          {showFullKey && newApiKey
+                            ? newApiKey
+                            : (newApiKey || mtData?.apiKeyMasked || '')}
+                        </div>
+                        <button
+                          onClick={() => handleCopyKey(newApiKey || mtData?.apiKeyMasked || '')}
+                          className="w-8 h-8 rounded-lg bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+                          title="Copier"
+                        >
+                          {copiedKey ? <CheckCircle2 className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5" />}
+                        </button>
+                        {newApiKey && (
+                          <button
+                            onClick={() => setShowFullKey(!showFullKey)}
+                            className="w-8 h-8 rounded-lg bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+                            title={showFullKey ? 'Masquer' : 'Afficher'}
+                          >
+                            {showFullKey ? (
+                              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                              </svg>
+                            ) : (
+                              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                            )}
+                          </button>
+                        )}
                       </div>
+                    )}
+
+                    {newApiKey && showFullKey && (
+                      <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                        <p className="text-[11px] text-amber-300">
+                          <strong>Important:</strong> Sauvegardez cette cle maintenant. Elle ne sera plus affichee en entier apres la fermeture de ce panneau.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Generate button */}
+                    <button
+                      onClick={handleGenerateApiKey}
+                      disabled={isGeneratingKey}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium hover:bg-blue-500/20 transition-all disabled:opacity-50"
+                    >
+                      {isGeneratingKey ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Zap className="h-3.5 w-3.5" />
+                      )}
+                      {mtData?.hasApiKey ? 'Regenerer la cle API' : 'Generer une cle API'}
+                    </button>
+                  </div>
+
+                  {/* Webhook URL */}
+                  <div className="p-4 rounded-xl bg-muted border border-border space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Link2 className="h-4 w-4 text-[#ff6b2b]" />
+                      <p className="text-xs font-semibold text-foreground">URL du Webhook</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 px-3 py-2 rounded-lg bg-background border border-border font-mono text-[11px] text-muted-foreground truncate">
+                        {WEBHOOK_URL}
+                      </div>
+                      <button
+                        onClick={() => handleCopyKey(WEBHOOK_URL)}
+                        className="w-8 h-8 rounded-lg bg-background border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+                        title="Copier l'URL"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground/60">
+                      Cette URL est pre-configuree dans l&apos;Expert Advisor.
+                    </p>
+                  </div>
+
+                  {/* Download EA */}
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-green-500/5 to-green-600/5 border border-green-500/10 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Download className="h-4 w-4 text-green-400" />
+                      <p className="text-xs font-semibold text-foreground">Expert Advisor (EA)</p>
                     </div>
                     <p className="text-[11px] text-muted-foreground">
-                      Utilisez l&apos;Expert Advisor TradeVault dans MetaTrader pour synchroniser automatiquement vos trades. Demandez le fichier .ex4/.ex5 dans le panneau admin.
+                      Telechargez le fichier EA et installez-le dans MetaTrader. Votre cle API est automatiquement integree.
                     </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => handleDownloadEA('mt4')}
+                        disabled={!mtData?.hasApiKey && !newApiKey}
+                        className="flex items-center justify-center gap-2 py-2.5 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-medium hover:bg-green-500/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        MT4 (.mq4)
+                      </button>
+                      <button
+                        onClick={() => handleDownloadEA('mt5')}
+                        disabled={!mtData?.hasApiKey && !newApiKey}
+                        className="flex items-center justify-center gap-2 py-2.5 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-medium hover:bg-green-500/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        MT5 (.mq5)
+                      </button>
+                    </div>
+                    {!mtData?.hasApiKey && !newApiKey && (
+                      <p className="text-[10px] text-muted-foreground/50 text-center">
+                        Generez une cle API d&apos;abord pour telecharger l&apos;EA
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Installation Steps */}
+                  <div className="p-4 rounded-xl bg-muted border border-border space-y-3">
+                    <div className="flex items-center gap-2">
+                      <RefreshCw className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-xs font-semibold text-foreground">Guide d&apos;installation</p>
+                    </div>
+                    <ol className="space-y-2 text-[11px] text-muted-foreground">
+                      <li className="flex items-start gap-2">
+                        <span className="w-4 h-4 rounded-full bg-primary/10 text-primary text-[9px] flex items-center justify-center flex-shrink-0 mt-0.5 font-bold">1</span>
+                        <span>Ouvrez les parametres Expert Advisors dans MetaTrader (Outils &gt; Options &gt; Expert Advisors) et cochez &quot;Autoriser WebRequest&quot;</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="w-4 h-4 rounded-full bg-primary/10 text-primary text-[9px] flex items-center justify-center flex-shrink-0 mt-0.5 font-bold">2</span>
+                        <span>Ajoutez <code className="text-[10px] bg-background px-1 rounded">trade-vault-xi.vercel.app</code> a la liste des URL autorisees</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="w-4 h-4 rounded-full bg-primary/10 text-primary text-[9px] flex items-center justify-center flex-shrink-0 mt-0.5 font-bold">3</span>
+                        <span>Placez le fichier .mq4/.mq5 dans le dossier MQL4/Experts ou MQL5/Experts</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="w-4 h-4 rounded-full bg-primary/10 text-primary text-[9px] flex items-center justify-center flex-shrink-0 mt-0.5 font-bold">4</span>
+                        <span>Compilez le fichier dans MetaEditor, puis attachez l&apos;EA a un graphique</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="w-4 h-4 rounded-full bg-primary/10 text-primary text-[9px] flex items-center justify-center flex-shrink-0 mt-0.5 font-bold">5</span>
+                        <span>L&apos;EA synchronise automatiquement vos trades fermes toutes les 5 minutes</span>
+                      </li>
+                    </ol>
                   </div>
                 </motion.div>
               </>

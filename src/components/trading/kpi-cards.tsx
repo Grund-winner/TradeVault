@@ -18,13 +18,31 @@ import { computeKPIs, type Trade } from '@/lib/mock-data';
 
 interface KpiCardsProps {
   trades: Trade[];
+  initialBalance?: number;
 }
 
-export default function KpiCards({ trades }: KpiCardsProps) {
+export default function KpiCards({ trades, initialBalance }: KpiCardsProps) {
   const kpis = computeKPIs(trades);
+  const hasInitialBalance = initialBalance && initialBalance > 0;
 
   const safeDiv = (a: number, b: number, fallback = 0): number => (b === 0 ? fallback : a / b);
   const hasTrades = kpis.totalTrades > 0;
+
+  // ROI based on initial balance when available
+  const roiValue = hasInitialBalance
+    ? ((kpis.netPnl / initialBalance) * 100).toFixed(1)
+    : `${(safeDiv(kpis.netPnl, kpis.grossWins + kpis.grossLosses) * 100).toFixed(1)}`;
+  const roiLabel = hasInitialBalance ? 'ROI (solde initial)' : 'Rendement';
+
+  // Drawdown based on initial balance when available
+  const drawdownValue = hasInitialBalance
+    ? ((kpis.maxDrawdown * initialBalance) / 100).toFixed(0)
+    : kpis.maxDrawdown.toFixed(1);
+  const drawdownUnit = hasInitialBalance ? '$' : '%';
+  const drawdownSuffix = hasInitialBalance ? '' : '%';
+  const drawdownTooltip = hasInitialBalance
+    ? `${kpis.maxDrawdown}% de ${initialBalance.toLocaleString()}$`
+    : 'Perte maximale';
 
   const cards = [
     {
@@ -85,16 +103,16 @@ export default function KpiCards({ trades }: KpiCardsProps) {
     },
     {
       label: 'ROI',
-      value: hasTrades ? `${(safeDiv(kpis.netPnl, kpis.grossWins + kpis.grossLosses) * 100).toFixed(1)}%` : 'N/A',
-      subtitle: 'Rendement',
+      value: hasTrades ? `${roiValue}%` : 'N/A',
+      subtitle: roiLabel,
       icon: <Percent className="h-4 w-4" />,
-      positive: true,
+      positive: hasInitialBalance ? kpis.netPnl >= 0 : true,
       isHex: false,
     },
     {
       label: 'Drawdown Max',
-      value: `-${kpis.maxDrawdown}%`,
-      subtitle: 'Perte maximale',
+      value: `-${drawdownValue}${drawdownSuffix}`,
+      subtitle: drawdownTooltip,
       icon: <TrendingDown className="h-4 w-4" />,
       positive: false,
       isHex: true,

@@ -89,7 +89,7 @@ export default function Home() {
         if (data.siteName) setSiteName(data.siteName);
         if (data.siteSubtitle) setSiteSubtitle(data.siteSubtitle);
         if (data.role) setUserRole(data.role);
-        if (data.initialBalance) setInitialBalance(data.initialBalance);
+        if (data.initialBalance) setInitialBalance(Number(data.initialBalance) || 0);
         if (data.subscription) setSubscription(data.subscription);
         // Apply theme from saved settings
         if (data.theme === 'light') {
@@ -328,9 +328,9 @@ export default function Home() {
                   exit="exit"
                   className="space-y-6"
                 >
-                  <KpiCards trades={filteredTrades} />
+                  <KpiCards trades={filteredTrades} initialBalance={initialBalance} />
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    <EquityCurve trades={filteredTrades} />
+                    <EquityCurve trades={filteredTrades} initialBalance={initialBalance} />
                     <PnlChart trades={filteredTrades} />
                   </div>
                   <PnLDistribution trades={filteredTrades} />

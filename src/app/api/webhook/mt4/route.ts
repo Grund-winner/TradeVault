@@ -75,6 +75,12 @@ export async function POST(request: NextRequest) {
       calculatedPips || 0
     );
 
+    // Update last sync timestamp on user
+    await db.$executeRawUnsafe(
+      `UPDATE users SET "mtLastSync" = NOW(), "updatedAt" = NOW() WHERE id = $1`,
+      userId
+    );
+
     return NextResponse.json({
       success: true,
       message: 'Trade synchronise avec succes',
