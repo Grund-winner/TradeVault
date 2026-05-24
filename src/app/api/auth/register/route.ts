@@ -45,8 +45,8 @@ export async function POST(request: NextRequest) {
     const sessionToken = createHash('sha256').update(userId + Date.now() + '_session').digest('hex');
 
     await db.$executeRawUnsafe(
-      `INSERT INTO users (id, email, password, "siteName", "siteSubtitle", theme, "sessionToken", "createdAt", "updatedAt")
-       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())`,
+      `INSERT INTO users (id, email, password, "siteName", "siteSubtitle", theme, "sessionToken", role, locale, "createdAt", "updatedAt")
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'user', 'fr', NOW(), NOW())`,
       userId,
       email.toLowerCase().trim(),
       hashedPassword,
@@ -56,8 +56,20 @@ export async function POST(request: NextRequest) {
       sessionToken
     );
 
+    // Create 7-day trial subscription
+    try {
+      await db.$executeRawUnsafe(
+        `INSERT INTO subscriptions (id, "userId", plan, status, "paymentMethod", "paymentRef", amount, currency, "startDate", "endDate", "createdAt", "updatedAt")
+         VALUES ($1, $2, 'pro', 'active', 'trial', '', 0, 'EUR', NOW(), NOW() + INTERVAL '7 days', NOW(), NOW())`,
+        `sub_${Date.now()}`,
+        userId
+      );
+    } catch (subError) {
+      console.error('[TradeVault] Failed to create trial subscription:', subError);
+    }
+
     const users = await db.$queryRawUnsafe<Array<Record<string, unknown>>>(
-      `SELECT id, email, "siteName", "siteSubtitle", theme, "createdAt", "updatedAt" FROM users WHERE id = $1`,
+      `SELECT id, email, "siteName", "siteSubtitle", theme, role, locale, "createdAt", "updatedAt" FROM users WHERE id = $1`,
       userId
     );
 

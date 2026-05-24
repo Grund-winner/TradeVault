@@ -26,8 +26,12 @@ model Trade {
   notes       String?  @db.Text
   tags        String?
   userId      String?  @default("") @map("userId")
+  source      String   @default("manual")
+  pips        Float?   @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  user        User?     @relation("UserTrades", fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("trades")
 }
@@ -39,9 +43,71 @@ model User {
   siteName      String    @default("TradeVault")
   siteSubtitle  String    @default("Analytics Pro")
   theme         String    @default("dark")
+  role          String    @default("user")
+  phone         String?   @default("")
+  initialBalance Float?   @default(0)
+  locale        String    @default("fr")
   sessionToken  String?   @map("sessionToken")
+  isActive      Boolean   @default(true)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  subscriptions    Subscription[]
+  trades           Trade[]    @relation("UserTrades")
+  posts            CommunityPost[]
+  aiConversations  AiConversation[]
+
   @@map("users")
+}
+
+model Subscription {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan          String   @default("pro")
+  status        String   @default("active")
+  paymentMethod String   @default("")
+  paymentRef    String?  @default("")
+  amount        Float    @default(25)
+  currency      String   @default("EUR")
+  startDate     DateTime @default(now())
+  endDate       DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("subscriptions")
+}
+
+model CommunityPost {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content       String   @db.Text
+  isPinned      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("community_posts")
+}
+
+model AiConversation {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages      Json     @default("[]")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("ai_conversations")
+}
+
+model AdminLog {
+  id        String   @id @default(cuid())
+  adminId   String
+  action    String   @db.Text
+  targetId  String?  @default("")
+  details   String?  @db.Text
+  createdAt DateTime @default(now())
+
+  @@map("admin_logs")
 }

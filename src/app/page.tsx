@@ -77,6 +77,7 @@ export default function Home() {
   const [siteName, setSiteName] = useState('TradeVault');
   const [siteSubtitle, setSiteSubtitle] = useState('Analytics Pro');
   const [showSettings, setShowSettings] = useState(false);
+  const [userRole, setUserRole] = useState('user');
 
   // Load user settings from session
   const fetchSession = useCallback(async () => {
@@ -86,6 +87,7 @@ export default function Home() {
         const data = await res.json();
         if (data.siteName) setSiteName(data.siteName);
         if (data.siteSubtitle) setSiteSubtitle(data.siteSubtitle);
+        if (data.role) setUserRole(data.role);
         // Apply theme from saved settings
         if (data.theme === 'light') {
           document.documentElement.classList.remove('dark');
@@ -214,6 +216,7 @@ export default function Home() {
         <Header
           siteName={siteName}
           onSettingsClick={() => setShowSettings(true)}
+          userRole={userRole}
         />
 
         <div className="px-4 md:px-6 py-6 max-w-[1600px] mx-auto">

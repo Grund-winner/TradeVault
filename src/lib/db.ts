@@ -87,6 +87,24 @@ export async function ensureDatabase() {
     console.error('[TradeVault] Failed to add userId column:', error)
   }
 
+  // Add extra trade columns (source, pips)
+  const extraTradeCols = [
+    'source TEXT NOT NULL DEFAULT \'manual\'',
+    'pips DOUBLE PRECISION NOT NULL DEFAULT 0',
+  ];
+  for (const colDef of extraTradeCols) {
+    try {
+      await client.$executeRawUnsafe(`
+        DO $$ BEGIN
+          ALTER TABLE trades ADD COLUMN IF NOT EXISTS ${colDef};
+        EXCEPTION WHEN OTHERS THEN NULL;
+        END $$;
+      `)
+    } catch (error) {
+      console.error('[TradeVault] Failed to add column to trades:', error)
+    }
+  }
+
   try {
     await client.$executeRawUnsafe(`
       CREATE TABLE IF NOT EXISTS users (
@@ -115,5 +133,95 @@ export async function ensureDatabase() {
     `)
   } catch (error) {
     console.error('[TradeVault] Failed to add sessionToken column:', error)
+  }
+
+  // Add new columns to users table
+  const userColumns = [
+    'role TEXT NOT NULL DEFAULT \'user\'',
+    'phone TEXT NOT NULL DEFAULT \'\'',
+    '"initialBalance" DOUBLE PRECISION NOT NULL DEFAULT 0',
+    'locale TEXT NOT NULL DEFAULT \'fr\'',
+    '"isActive" BOOLEAN NOT NULL DEFAULT true',
+  ];
+  for (const colDef of userColumns) {
+    try {
+      await client.$executeRawUnsafe(`
+        DO $$ BEGIN
+          ALTER TABLE users ADD COLUMN IF NOT EXISTS ${colDef};
+        EXCEPTION WHEN OTHERS THEN NULL;
+        END $$;
+      `)
+    } catch (error) {
+      console.error('[TradeVault] Failed to add column to users:', error)
+    }
+  }
+
+  // Create subscriptions table
+  try {
+    await client.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS subscriptions (
+        id TEXT PRIMARY KEY,
+        "userId" TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        plan TEXT NOT NULL DEFAULT 'pro',
+        status TEXT NOT NULL DEFAULT 'active',
+        "paymentMethod" TEXT NOT NULL DEFAULT '',
+        "paymentRef" TEXT NOT NULL DEFAULT '',
+        amount DOUBLE PRECISION NOT NULL DEFAULT 25,
+        currency TEXT NOT NULL DEFAULT 'EUR',
+        "startDate" TIMESTAMP NOT NULL DEFAULT NOW(),
+        "endDate" TIMESTAMP NOT NULL DEFAULT (NOW() + INTERVAL '30 days'),
+        "createdAt" TIMESTAMP NOT NULL DEFAULT NOW(),
+        "updatedAt" TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `)
+  } catch (error) {
+    console.error('[TradeVault] Failed to create subscriptions table:', error)
+  }
+
+  // Create community_posts table
+  try {
+    await client.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS community_posts (
+        id TEXT PRIMARY KEY,
+        "userId" TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        content TEXT NOT NULL,
+        "isPinned" BOOLEAN NOT NULL DEFAULT false,
+        "createdAt" TIMESTAMP NOT NULL DEFAULT NOW(),
+        "updatedAt" TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `)
+  } catch (error) {
+    console.error('[TradeVault] Failed to create community_posts table:', error)
+  }
+
+  // Create ai_conversations table
+  try {
+    await client.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS ai_conversations (
+        id TEXT PRIMARY KEY,
+        "userId" TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        messages JSONB NOT NULL DEFAULT '[]'::jsonb,
+        "createdAt" TIMESTAMP NOT NULL DEFAULT NOW(),
+        "updatedAt" TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `)
+  } catch (error) {
+    console.error('[TradeVault] Failed to create ai_conversations table:', error)
+  }
+
+  // Create admin_logs table
+  try {
+    await client.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS admin_logs (
+        id TEXT PRIMARY KEY,
+        "adminId" TEXT NOT NULL,
+        action TEXT NOT NULL,
+        "targetId" TEXT NOT NULL DEFAULT '',
+        details TEXT,
+        "createdAt" TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `)
+  } catch (error) {
+    console.error('[TradeVault] Failed to create admin_logs table:', error)
   }
 }

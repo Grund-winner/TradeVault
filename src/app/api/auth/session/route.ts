@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, checkSubscription } from '@/lib/auth';
 
 export async function GET() {
   try {
@@ -11,8 +11,11 @@ export async function GET() {
         siteName: 'TradeVault',
         siteSubtitle: 'Analytics Pro',
         theme: 'dark',
+        locale: 'fr',
       });
     }
+
+    const sub = await checkSubscription(user.id);
 
     return NextResponse.json({
       exists: true,
@@ -20,12 +23,13 @@ export async function GET() {
       siteSubtitle: user.siteSubtitle,
       theme: user.theme,
       email: user.email,
+      role: user.role,
+      locale: user.locale,
+      initialBalance: user.initialBalance,
+      subscription: sub,
     });
   } catch (error) {
     console.error('[TradeVault] Session error:', error);
-    return NextResponse.json(
-      { error: 'Erreur lors du chargement de la session' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Session error' }, { status: 500 });
   }
 }
