@@ -1,11 +1,20 @@
 import { NextResponse } from 'next/server';
 import { db, ensureDatabase } from '@/lib/db';
-import { requireAdmin } from '@/lib/auth';
+import { requireAdmin, getCurrentUser } from '@/lib/auth';
 
 export async function GET() {
   try {
-    const admin = await requireAdmin();
-    if (!admin) return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    // First check if user is authenticated at all
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Non authentifie' }, { status: 401 });
+    }
+
+    // Then check if user is admin
+    if (user.role !== 'admin' && user.role !== 'host') {
+      return NextResponse.json({ error: 'Acces refuse' }, { status: 403 });
+    }
+
     await ensureDatabase();
 
     const userStats = await db.$queryRawUnsafe<Array<{ total: number; active: number; admins: number }>>(
@@ -27,6 +36,6 @@ export async function GET() {
     });
   } catch (error) {
     console.error('[Admin] Stats error:', error);
-    return NextResponse.json({ error: 'Failed' }, { status: 500 });
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 });
   }
 }

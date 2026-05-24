@@ -5,8 +5,9 @@ import { motion } from 'framer-motion';
 import {
   LayoutDashboard, Users, CreditCard, ArrowLeft, Shield, Search,
   Eye, Ban, CheckCircle, DollarSign, TrendingUp, UserPlus, Clock,
-  AlertTriangle, Loader2, RefreshCw, Crown, Gift
+  AlertTriangle, Loader2, RefreshCw, Crown, Gift, LogIn
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 type Tab = 'dashboard' | 'users' | 'trades' | 'subscriptions';
@@ -32,6 +33,7 @@ interface PlatformStats {
 }
 
 export default function AdminPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [stats, setStats] = useState<PlatformStats | null>(null);
   const [users, setUsers] = useState<UserRow[]>([]);
@@ -51,18 +53,22 @@ export default function AdminPage() {
     try {
       // Check admin access by fetching stats
       const statsRes = await fetch('/api/admin/stats');
+
+      // Not authenticated -> redirect to login
+      if (statsRes.status === 401) {
+        setLoading(false);
+        router.push('/login?from=/admin');
+        return;
+      }
+
+      // Authenticated but not admin
       if (statsRes.status === 403) {
         setIsAdmin(false);
-        setError('Accès refusé. Vous devez être connecté en tant qu\'administrateur.');
+        setError('Vous n\'avez pas les droits administrateur.');
         setLoading(false);
         return;
       }
-      if (statsRes.status === 401) {
-        setIsAdmin(false);
-        setError('Non authentifié. Connectez-vous d\'abord.');
-        setLoading(false);
-        return;
-      }
+
       if (!statsRes.ok) {
         const errData = await statsRes.json().catch(() => ({}));
         setError(`Erreur serveur: ${errData.error || statsRes.statusText}`);
@@ -186,7 +192,7 @@ export default function AdminPage() {
     );
   }
 
-  // Not admin - show clean error
+  // Not admin - show error with login button
   if (!isAdmin) {
     return (
       <div className="flex min-h-screen bg-background items-center justify-center">
@@ -198,13 +204,22 @@ export default function AdminPage() {
           <p className="text-sm text-muted-foreground">
             {error || 'Vous n\'avez pas les permissions nécessaires pour accéder à cette page.'}
           </p>
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-muted border border-border text-foreground font-medium text-sm hover:bg-accent transition-all"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Retour au tableau de bord
-          </Link>
+          <div className="flex gap-3">
+            <Link
+              href="/login?from=/admin"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#ff6b2b] text-white font-medium text-sm hover:bg-[#ff4500] transition-all"
+            >
+              <LogIn className="h-4 w-4" />
+              Se connecter
+            </Link>
+            <Link
+              href="/"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-muted border border-border text-foreground font-medium text-sm hover:bg-accent transition-all"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Accueil
+            </Link>
+          </div>
         </div>
       </div>
     );
