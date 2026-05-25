@@ -46,7 +46,7 @@ function EmptyState({ onAddTrade }: { onAddTrade: () => void }) {
       </div>
       <h3 className="text-xl font-bold text-foreground mb-2">Bienvenue sur TradeVault</h3>
       <p className="text-sm text-muted-foreground max-w-md mb-8">
-        Votre journal de trading est vide. Ajoutez votre premier trade pour commencer a suivre vos performances et analyser vos resultats.
+        Votre journal de trading est vide. Ajoutez votre premier trade pour commencer à suivre vos performances et analyser vos résultats.
       </p>
       <button
         onClick={onAddTrade}
@@ -280,7 +280,7 @@ export default function Home() {
                   <div className="flex items-center gap-3">
                     <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0" />
                     <p className="text-sm text-amber-200">
-                      Votre abonnement expire dans <span className="font-bold">{daysLeft} jour{daysLeft > 1 ? 's' : ''}</span>. Renouvelez pour ne pas perdre l&apos;acces.
+                      Votre abonnement expire dans <span className="font-bold">{daysLeft} jour{daysLeft > 1 ? 's' : ''}</span>. Renouvelez pour ne pas perdre l&apos;accès.
                     </p>
                   </div>
                   <a href="/pricing" className="text-xs font-semibold text-amber-400 hover:text-amber-300 transition-colors whitespace-nowrap ml-4">
@@ -317,8 +317,8 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-bold text-foreground mb-1">Aucun resultat</h3>
-              <p className="text-sm text-muted-foreground mb-4">Aucun trade ne correspond a vos filtres actuels.</p>
+              <h3 className="text-lg font-bold text-foreground mb-1">Aucun résultat</h3>
+              <p className="text-sm text-muted-foreground mb-4">Aucun trade ne correspond à vos filtres actuels.</p>
               <button
                 onClick={() => {
                   setFilters(defaultFilters);
@@ -326,7 +326,7 @@ export default function Home() {
                 }}
                 className="text-xs text-[#ff6b2b] hover:text-[#ff8f5e] transition-colors font-medium"
               >
-                Reinitialiser les filtres
+                Réinitialiser les filtres
               </button>
             </motion.div>
           )}
@@ -392,14 +392,14 @@ export default function Home() {
                       transition={{ duration: 0.5, delay: 0.5 }}
                       className="glass-card rounded-2xl p-6"
                     >
-                      <h3 className="text-sm font-semibold text-foreground mb-4">Resume de Performance</h3>
+                      <h3 className="text-sm font-semibold text-foreground mb-4">Résumé de Performance</h3>
                       <div className="space-y-4">
                         {[
                           { label: 'P&L Brut', value: `$${kpis.grossWins.toLocaleString()}`, sub: 'Total des gains', color: 'text-[#22c55e]' },
                           { label: 'P&L Pertes', value: `$${kpis.grossLosses.toLocaleString()}`, sub: 'Total des pertes', color: 'text-[#ef4444]' },
-                          { label: 'P&L Net', value: `${kpis.netPnl >= 0 ? '+' : ''}$${kpis.netPnl.toLocaleString()}`, sub: 'Resultat net', color: kpis.netPnl >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]' },
-                          { label: 'Total R', value: `${kpis.totalR > 0 ? '+' : ''}${kpis.totalR}R`, sub: 'R-multiples cumules', color: kpis.totalR >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]' },
-                          { label: 'Profit Factor', value: kpis.profitFactor === 999 ? '∞' : kpis.profitFactor.toString(), sub: kpis.profitFactor === 999 ? 'Parfait (0 perte)' : kpis.profitFactor >= 2 ? 'Excellent' : kpis.profitFactor >= 1.5 ? 'Bon' : 'A ameliorer', color: 'text-[#ff6b2b]' },
+                          { label: 'P&L Net', value: `${kpis.netPnl >= 0 ? '+' : ''}$${kpis.netPnl.toLocaleString()}`, sub: 'Résultat net', color: kpis.netPnl >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]' },
+                          { label: 'Total R', value: `${kpis.totalR > 0 ? '+' : ''}${kpis.totalR}R`, sub: 'R-multiples cumulés', color: kpis.totalR >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]' },
+                          { label: 'Profit Factor', value: kpis.profitFactor === 999 ? 'Parfait' : kpis.profitFactor.toString(), sub: kpis.profitFactor === 999 ? 'Parfait (0 perte)' : kpis.profitFactor >= 2 ? 'Excellent' : kpis.profitFactor >= 1.5 ? 'Bon' : 'À améliorer', color: 'text-[#ff6b2b]' },
                           { label: 'Risk Reward', value: kpis.riskReward.toString(), sub: 'Ratio moyen', color: 'text-[#ff6b2b]' },
                         ].map((stat) => (
                           <div key={stat.label} className="flex items-center justify-between py-2 border-b border-border last:border-0">

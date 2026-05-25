@@ -18,7 +18,7 @@ function PricingContent() {
 
   useEffect(() => {
     if (searchParams.get('expired') === 'true') setIsExpired(true);
-    if (searchParams.get('cancelled') === 'true') setError('Paiement annule. Reessayez.');
+    if (searchParams.get('cancelled') === 'true') setError('Paiement annulé. Réessayez.');
 
     // Check if user is logged in & apply theme
     fetch('/api/auth/session')
@@ -36,7 +36,7 @@ function PricingContent() {
   }, [searchParams]);
 
   const features = [
-    { icon: TrendingUp, text: 'Trade tracking & analyse avancee' },
+    { icon: TrendingUp, text: 'Trade tracking & analyse avancée' },
     { icon: Zap, text: 'Synchronisation MT4/MT5 en temps reel' },
     { icon: Shield, text: 'Analyse de strategie par IA' },
     { icon: Users, text: 'Acces communaute exclusive' },
@@ -118,7 +118,7 @@ function PricingContent() {
         {/* Back link */}
         <Link href={isLoggedIn ? '/' : '/login'} className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8 text-sm">
           <ArrowLeft className="h-4 w-4" />
-          {isLoggedIn ? 'Retour au tableau de bord' : 'Retour a la connexion'}
+          {isLoggedIn ? 'Retour au tableau de bord' : 'Retour à la connexion'}
         </Link>
 
         {/* Expired subscription warning */}
@@ -129,7 +129,7 @@ function PricingContent() {
             className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/20 mb-6"
           >
             <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
-            <p className="text-sm text-red-300">Votre abonnement a expire. Renouvelez pour continuer a utiliser TradeVault.</p>
+            <p className="text-sm text-red-300">Votre abonnement a expiré. Renouvelez pour continuer à utiliser TradeVault.</p>
           </motion.div>
         )}
 
@@ -246,7 +246,7 @@ function PricingContent() {
           )}
 
           <p className="text-center text-xs text-muted-foreground mt-2">
-            Annule a tout moment. Aucun engagement.
+            Annulez à tout moment. Aucun engagement.
           </p>
         </motion.div>
       </motion.div>

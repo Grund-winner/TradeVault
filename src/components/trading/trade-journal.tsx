@@ -76,7 +76,7 @@ export default function TradeJournal({ trades, onDeleteTrade, onAddClick }: Trad
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-bold text-foreground">Journal de Trading</h3>
-          <p className="text-xs text-muted-foreground mt-0.5">{trades.length} trade{trades.length > 1 ? 's' : ''} enregistre{trades.length > 1 ? 's' : ''}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{trades.length} trade{trades.length > 1 ? 's' : ''} enregistré{trades.length > 1 ? 's' : ''}</p>
         </div>
         <Button
           onClick={onAddClick}
@@ -127,7 +127,7 @@ export default function TradeJournal({ trades, onDeleteTrade, onAddClick }: Trad
                       <Badge variant="outline" className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
                         trade.direction === 'Buy' ? 'border-[#22c55e]/30 text-[#22c55e] bg-[#22c55e]/10' : 'border-[#ef4444]/30 text-[#ef4444] bg-[#ef4444]/10'
                       }`}>
-                        {trade.direction}
+                        {trade.direction === 'Buy' ? 'Achat' : 'Vente'}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground text-right font-mono">{trade.entry}</TableCell>
@@ -143,7 +143,7 @@ export default function TradeJournal({ trades, onDeleteTrade, onAddClick }: Trad
                       <Badge className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
                         trade.status === 'Win' ? 'bg-[#22c55e]/15 text-[#22c55e] border-0' : 'bg-[#ef4444]/15 text-[#ef4444] border-0'
                       }`}>
-                        {trade.status}
+                        {trade.status === 'Win' ? 'Gain' : 'Perte'}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground hidden lg:table-cell">{trade.strategy}</TableCell>
@@ -159,7 +159,7 @@ export default function TradeJournal({ trades, onDeleteTrade, onAddClick }: Trad
                     </TableCell>
                     <TableCell>
                       <button
-                        onClick={() => onDeleteTrade(trade.id)}
+                        onClick={() => { if (confirm('Supprimer ce trade ?')) onDeleteTrade(trade.id); }}
                         className="p-1.5 rounded-lg text-muted-foreground/40 hover:text-[#ef4444] hover:bg-[#ef4444]/10 transition-all"
                         title="Supprimer ce trade"
                       >
@@ -172,7 +172,7 @@ export default function TradeJournal({ trades, onDeleteTrade, onAddClick }: Trad
               {paginated.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={12} className="text-center py-12 text-muted-foreground">
-                    Aucun trade trouve pour ces filtres.
+                    Aucun trade trouvé pour ces filtres.
                   </TableCell>
                 </TableRow>
               )}

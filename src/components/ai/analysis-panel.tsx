@@ -117,7 +117,7 @@ export default function AiAnalysis({ trades }: AiAnalysisProps) {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-bold text-foreground">Analyse IA</h3>
-          <p className="text-xs text-muted-foreground mt-0.5">Recommandations personnalisees basees sur vos performances</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Recommandations personnalisées basées sur vos performances</p>
         </div>
       </div>
 
@@ -139,7 +139,7 @@ export default function AiAnalysis({ trades }: AiAnalysisProps) {
           <div>
             <p className="text-[10px] text-muted-foreground">P&L Net</p>
             <p className={`text-sm font-bold ${kpis.netPnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              {kpis.netPnl >= 0 ? '+' : ''}{kpis.netPnl}$
+              ${kpis.netPnl >= 0 ? '+' : ''}$${kpis.netPnl}
             </p>
           </div>
         </div>
@@ -150,7 +150,7 @@ export default function AiAnalysis({ trades }: AiAnalysisProps) {
           <div>
             <p className="text-[10px] text-muted-foreground">Profit Factor</p>
             <p className="text-sm font-bold text-foreground">
-              {kpis.profitFactor === 999 ? '∞' : kpis.profitFactor}
+              {kpis.profitFactor === 999 ? 'Parfait' : kpis.profitFactor}
             </p>
           </div>
         </div>

@@ -10,7 +10,7 @@ interface CalendarViewProps {
 }
 
 export default function CalendarView({ trades }: CalendarViewProps) {
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 0, 1));
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
   const kpis = computeKPIs(trades);
@@ -19,8 +19,8 @@ export default function CalendarView({ trades }: CalendarViewProps) {
   const month = currentDate.getMonth();
 
   const monthNames = [
-    'Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin',
-    'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Decembre'
+    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
   ];
   const dayNames = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
@@ -222,7 +222,7 @@ export default function CalendarView({ trades }: CalendarViewProps) {
                           ? 'bg-[#22c55e]/15 text-[#22c55e]'
                           : 'bg-[#ef4444]/15 text-[#ef4444]'
                       }`}>
-                        {trade.direction}
+                        {trade.direction === 'Buy' ? 'Achat' : 'Vente'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -263,14 +263,14 @@ export default function CalendarView({ trades }: CalendarViewProps) {
                 <div className="w-12 h-12 rounded-xl bg-[#ff6b2b]/10 flex items-center justify-center mx-auto mb-3">
                   <TrendingUp className="h-5 w-5 text-[#ff6b2b]" />
                 </div>
-                <p className="text-sm text-muted-foreground">Cliquez sur un jour avec des trades pour voir les details</p>
+                <p className="text-sm text-muted-foreground">Cliquez sur un jour avec des trades pour voir les détails</p>
               </motion.div>
             )}
           </AnimatePresence>
 
           {/* Monthly Legend */}
           <div className="mt-6 pt-4 border-t border-border">
-            <h5 className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-3">Resume du mois</h5>
+            <h5 className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-3">Résumé du mois</h5>
             <div className="grid grid-cols-2 gap-3">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-3.5 w-3.5 text-[#22c55e]" />

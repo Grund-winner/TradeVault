@@ -19,9 +19,9 @@ interface SidebarProps {
 const navItems: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'dashboard', label: 'Tableau de bord', icon: <LayoutDashboard className="h-5 w-5" /> },
   { id: 'journal', label: 'Journal', icon: <BookOpen className="h-5 w-5" /> },
-  { id: 'detailed', label: 'Detaille', icon: <BarChart3 className="h-5 w-5" /> },
+  { id: 'detailed', label: 'Détail', icon: <BarChart3 className="h-5 w-5" /> },
   { id: 'ai', label: 'IA Coach', icon: <Brain className="h-5 w-5" /> },
-  { id: 'community', label: 'Communaute', icon: <Users className="h-5 w-5" /> },
+  { id: 'community', label: 'Communauté', icon: <Users className="h-5 w-5" /> },
   { id: 'backtest', label: 'Backtest', icon: <FlaskConical className="h-5 w-5" /> },
   { id: 'export', label: 'Export', icon: <Download className="h-5 w-5" /> },
   { id: 'calendar', label: 'Calendrier', icon: <CalendarDays className="h-5 w-5" /> },
@@ -92,10 +92,10 @@ export default function Sidebar({ activeTab, onTabChange, allTrades = [], siteNa
       <div className="px-4 py-4">
         <div className="flex items-center gap-2 mb-1">
           <TrendingUp className="h-3.5 w-3.5 text-[#ff6b2b]" />
-          <span className="text-xs text-[#94a3b8] font-medium">P&L cumule</span>
+          <span className="text-xs text-[#94a3b8] font-medium">P&L cumulé</span>
         </div>
         <p className={`text-lg font-bold mb-3 ${totalPnl >= 0 ? 'text-[#22c55e]' : 'text-[#ef4444]'}`}>
-          {totalPnl >= 0 ? '+' : ''}{totalPnl.toLocaleString()}$
+          {totalPnl >= 0 ? '+' : ''}$${totalPnl.toLocaleString()}
         </p>
         <div className="h-12 rounded-lg overflow-hidden">
           {sparklineData.length > 0 ? (
@@ -119,11 +119,11 @@ export default function Sidebar({ activeTab, onTabChange, allTrades = [], siteNa
             </ResponsiveContainer>
           ) : (
             <div className="h-full flex items-center justify-center text-[10px] text-muted-foreground/40">
-              Aucune donnee
+              Aucune donnée
             </div>
           )}
         </div>
-        <p className="text-[11px] text-muted-foreground mt-2">{allTrades.length} trade{allTrades.length > 1 ? 's' : ''} enregistre{allTrades.length > 1 ? 's' : ''}</p>
+        <p className="text-[11px] text-muted-foreground mt-2">{allTrades.length} trade{allTrades.length > 1 ? 's' : ''} enregistré{allTrades.length > 1 ? 's' : ''}</p>
       </div>
 
       {/* Bottom branding */}

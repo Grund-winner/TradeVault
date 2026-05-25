@@ -87,7 +87,7 @@ export default function KpiCards({ trades, initialBalance }: KpiCardsProps) {
     },
     {
       label: 'Profit Factor',
-      value: kpis.profitFactor === 999 ? '∞' : hasTrades ? kpis.profitFactor.toString() : 'N/A',
+      value: kpis.profitFactor === 999 ? 'Parfait' : hasTrades ? kpis.profitFactor.toString() : 'N/A',
       subtitle: kpis.profitFactor === 999 ? 'Parfait (0 perte)' : hasTrades ? `${kpis.profitFactor >= 2 ? 'Excellent' : kpis.profitFactor >= 1.5 ? 'Bon' : 'Moyen'}` : 'Aucun trade',
       icon: <Flame className="h-4 w-4" />,
       positive: kpis.profitFactor >= 1,
@@ -179,7 +179,7 @@ export default function KpiCards({ trades, initialBalance }: KpiCardsProps) {
                 <path
                   d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                   fill="none"
-                  stroke="rgba(255,255,255,0.06)"
+                  stroke="var(--muted)"
                   strokeWidth="3"
                 />
                 <motion.path

@@ -56,7 +56,7 @@ export default function CommunityPanel({ userRole, hasSubscription }: CommunityP
             <MessageSquare className="h-5 w-5 text-[#ff6b2b]" />
           </div>
           <div>
-            <h2 className="text-base font-semibold text-foreground">Communaute</h2>
+            <h2 className="text-base font-semibold text-foreground">Communauté</h2>
             <p className="text-[11px] text-muted-foreground">
               Rejoignez nos groupes exclusifs
             </p>
@@ -66,7 +66,7 @@ export default function CommunityPanel({ userRole, hasSubscription }: CommunityP
         {canAccess && (
           <span className="inline-flex items-center gap-1 text-[10px] font-medium text-green-400 bg-green-500/10 border border-green-500/20 px-2.5 py-1 rounded-full">
             <Crown className="h-3 w-3" />
-            Acces Pro
+            Accès Pro
           </span>
         )}
       </div>
@@ -112,10 +112,10 @@ export default function CommunityPanel({ userRole, hasSubscription }: CommunityP
         >
           <Lock className="h-8 w-8 text-amber-500 mx-auto mb-3" />
           <h3 className="text-sm font-bold text-foreground mb-2">
-            Acces reserve aux membres Pro
+            Accès réservé aux membres Pro
           </h3>
           <p className="text-xs text-muted-foreground mb-4 max-w-sm mx-auto">
-            Abonnez-vous pour acceder aux groupes exclusifs et rejoindre notre communaute de traders professionnels.
+            Abonnez-vous pour acceder aux groupes exclusifs et rejoindre notre communauté de traders professionnels.
           </p>
           <Link
             href="/pricing"

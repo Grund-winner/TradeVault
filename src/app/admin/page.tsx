@@ -266,9 +266,9 @@ export default function AdminPage() {
           <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto">
             <AlertTriangle className="h-8 w-8 text-red-500" />
           </div>
-          <h2 className="text-xl font-bold text-foreground">Acces Refuse</h2>
+          <h2 className="text-xl font-bold text-foreground">Accès Refusé</h2>
           <p className="text-sm text-muted-foreground">
-            {error || "Vous n'avez pas les permissions necessaires pour acceder a cette page."}
+            {error || "Vous n'avez pas les permissions nécessaires pour accéder à cette page."}
           </p>
           <div className="flex gap-3">
             <Link
@@ -306,7 +306,7 @@ export default function AdminPage() {
             className="flex items-center justify-center gap-2 mx-auto px-6 py-3 rounded-xl bg-[#ff6b2b] text-white font-medium text-sm hover:bg-[#ff4500] transition-all"
           >
             {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-            Reessayer
+            Réessayer
           </button>
         </div>
       </div>
@@ -366,7 +366,7 @@ export default function AdminPage() {
           <div className="flex items-center gap-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 mb-6">
             <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0" />
             <p className="text-xs text-amber-200">{error}</p>
-            <button onClick={handleRefresh} className="ml-auto text-xs text-amber-400 hover:text-amber-300 whitespace-nowrap">Reessayer</button>
+            <button onClick={handleRefresh} className="ml-auto text-xs text-amber-400 hover:text-amber-300 whitespace-nowrap">Réessayer</button>
           </div>
         )}
 
@@ -405,7 +405,7 @@ export default function AdminPage() {
               <div className="text-center py-16 rounded-2xl border border-border bg-card">
                 <Users className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
                 <p className="text-sm text-muted-foreground">
-                  {users.length === 0 ? 'Aucun utilisateur inscrit pour le moment.' : 'Aucun utilisateur trouve pour cette recherche.'}
+                  {users.length === 0 ? 'Aucun utilisateur inscrit pour le moment.' : 'Aucun utilisateur trouvé pour cette recherche.'}
                 </p>
               </div>
             ) : (
@@ -437,7 +437,7 @@ export default function AdminPage() {
                             {user.subStatus === 'active' ? (
                               <span className="text-xs text-green-500">Actif</span>
                             ) : (
-                              <span className="text-xs text-muted-foreground">Expire</span>
+                              <span className="text-xs text-muted-foreground">Expiré</span>
                             )}
                           </td>
                           <td className="px-4 py-3">
@@ -452,7 +452,7 @@ export default function AdminPage() {
                           </td>
                           <td className="px-4 py-3 text-right">
                             <div className="flex items-center justify-end gap-1">
-                              <button onClick={() => viewUser(user)} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all text-xs" title="Voir les details">
+                              <button onClick={() => viewUser(user)} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all text-xs" title="Voir les détails">
                                 <Eye className="h-3.5 w-3.5" />
                                 <span className="hidden xl:inline">Voir</span>
                               </button>
@@ -526,7 +526,7 @@ export default function AdminPage() {
             </div>
 
             <div className="rounded-2xl border border-border bg-card p-6">
-              <h3 className="text-sm font-semibold text-foreground mb-4">Trades recents</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-4">Trades récents</h3>
               {userTrades.length > 0 ? (
                 <div className="space-y-2">
                   {userTrades.slice(0, 10).map((t: Record<string, unknown>, i: number) => (
@@ -569,7 +569,7 @@ export default function AdminPage() {
               <div className="text-center py-16 rounded-2xl border border-border bg-card">
                 <TrendingUp className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
                 <p className="text-sm text-muted-foreground">
-                  {allTrades.length === 0 ? 'Aucun trade enregistre pour le moment.' : 'Aucun trade trouve pour cette recherche.'}
+                  {allTrades.length === 0 ? 'Aucun trade enregistré pour le moment.' : 'Aucun trade trouvé pour cette recherche.'}
                 </p>
               </div>
             ) : (
@@ -658,7 +658,7 @@ export default function AdminPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-bold text-foreground">Configuration</h2>
-                <p className="text-sm text-muted-foreground mt-1">Gerer les liens de la communaute et les parametres de la plateforme</p>
+                <p className="text-sm text-muted-foreground mt-1">Gérer les liens de la communauté et les paramètres de la plateforme</p>
               </div>
             </div>
 
@@ -671,7 +671,7 @@ export default function AdminPage() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">Liens de la Communaute</p>
+                  <p className="text-sm font-semibold text-foreground">Liens de la Communauté</p>
                   <p className="text-[11px] text-muted-foreground">Les liens WhatsApp et Telegram visibles par les utilisateurs Pro</p>
                 </div>
               </div>

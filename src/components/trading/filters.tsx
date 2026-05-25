@@ -42,17 +42,17 @@ export function applyFilters(trades: Trade[], filters: Filters, searchQuery: str
 
 const months = [
   { value: '01', label: 'Janvier' },
-  { value: '02', label: 'Fevrier' },
+  { value: '02', label: 'Février' },
   { value: '03', label: 'Mars' },
   { value: '04', label: 'Avril' },
   { value: '05', label: 'Mai' },
   { value: '06', label: 'Juin' },
   { value: '07', label: 'Juillet' },
-  { value: '08', label: 'Aout' },
+  { value: '08', label: 'Août' },
   { value: '09', label: 'Septembre' },
   { value: '10', label: 'Octobre' },
   { value: '11', label: 'Novembre' },
-  { value: '12', label: 'Decembre' },
+  { value: '12', label: 'Décembre' },
 ];
 
 const strategies: Array<Strategy | 'Tous'> = ['Tous', 'Breakout', 'Momentum', 'Mean Reversion', 'Range'];
@@ -108,7 +108,7 @@ export default function FiltersBar({ filters, onFiltersChange, trades, searchQue
   const uniqueYears = [...new Set(trades.map(t => parseInt(t.date.substring(0, 4))))].sort((a, b) => b - a);
 
   const yearOptions = [
-    { value: 'Tous', label: 'Toutes les annees' },
+    { value: 'Tous', label: 'Toutes les années' },
     ...uniqueYears.map(y => ({ value: y.toString(), label: y.toString() })),
   ];
 
@@ -164,7 +164,7 @@ export default function FiltersBar({ filters, onFiltersChange, trades, searchQue
             type="text"
             value={searchQuery}
             onChange={e => onSearchChange(e.target.value)}
-            placeholder="Rechercher un instrument, strategie, date..."
+            placeholder="Rechercher un instrument, stratégie, date..."
             className="bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground/50 w-full"
           />
           {searchQuery && (
@@ -180,7 +180,7 @@ export default function FiltersBar({ filters, onFiltersChange, trades, searchQue
             onClick={resetAll}
             className="px-3 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground bg-muted border border-border hover:border-[#ef4444]/30 hover:text-[#ef4444] transition-all whitespace-nowrap"
           >
-            Reinitialiser ({activeFilterCount})
+            Réinitialiser ({activeFilterCount})
           </button>
         )}
       </div>
@@ -188,7 +188,7 @@ export default function FiltersBar({ filters, onFiltersChange, trades, searchQue
       {/* Filter Dropdowns - Grid Layout */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
         <FilterSelect
-          label="Annee"
+          label="Année"
           value={filters.year === 'Tous' ? 'Tous' : filters.year.toString()}
           options={yearOptions}
           onChange={v => update({ year: v === 'Tous' ? 'Tous' : parseInt(v), month: null })}
@@ -212,7 +212,7 @@ export default function FiltersBar({ filters, onFiltersChange, trades, searchQue
           onChange={v => update({ type: v as TradeType | 'Tous' })}
         />
         <FilterSelect
-          label="Strategie"
+          label="Stratégie"
           value={filters.strategy}
           options={strategyOptions}
           onChange={v => update({ strategy: v as Strategy | 'Tous' })}

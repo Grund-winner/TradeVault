@@ -70,7 +70,7 @@ function LoginForm() {
     }
 
     if (password.length < 6) {
-      setError('Le mot de passe doit contenir au moins 6 caracteres');
+      setError('Le mot de passe doit contenir au moins 6 caractères');
       return;
     }
 
@@ -86,7 +86,7 @@ function LoginForm() {
       const data = await res.json();
 
       if (res.ok) {
-        setSuccess('Compte cree avec succes ! Connexion en cours...');
+        setSuccess('Compte créé avec succès ! Connexion en cours...');
         setTimeout(() => {
           router.push('/');
         }, 1500);
@@ -290,7 +290,7 @@ function LoginForm() {
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  {activeTab === 'login' ? 'Se connecter' : 'Creer un compte'}
+                  {activeTab === 'login' ? 'Se connecter' : 'Créer un compte'}
                   <ArrowRight className="h-4 w-4" />
                 </>
               )}
@@ -300,13 +300,13 @@ function LoginForm() {
           {/* Divider */}
           <div className="flex items-center gap-4 my-6">
             <div className="flex-1 h-px bg-gradient-to-r from-transparent to-border" />
-            <span className="text-[10px] text-muted-foreground uppercase tracking-widest">securise</span>
+            <span className="text-[10px] text-muted-foreground uppercase tracking-widest">Sécurisé</span>
             <div className="flex-1 h-px bg-gradient-to-l from-transparent to-border" />
           </div>
 
           {/* Footer */}
           <p className="text-center text-[11px] text-muted-foreground">
-            Vos donnees sont protegees et stockees en toute securite
+            Vos données sont protégées et stockées en toute sécurité
           </p>
         </motion.div>
 

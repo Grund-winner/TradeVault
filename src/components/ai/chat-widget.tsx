@@ -81,9 +81,9 @@ export default function AiChatWidget({ userId }: AiChatWidgetProps) {
   };
 
   const suggestedQuestions = [
-    "Comment ameliorer mon win rate ?",
+    "Comment améliorer mon win rate ?",
     "Analyse ma gestion du risque",
-    "Quelle strategie dois-je privilegier ?",
+    "Quelle stratégie dois-je privilégier ?",
   ];
 
   return (

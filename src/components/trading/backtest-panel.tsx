@@ -176,7 +176,7 @@ export default function BacktestPanel() {
         {
           label: 'Capital Final',
           value: `$${result.summary.finalCapital.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
-          subtitle: `+${((result.summary.finalCapital - startingCapital)).toLocaleString('fr-FR', { maximumFractionDigits: 0 })}$ vs depart`,
+          subtitle: `+${((result.summary.finalCapital - startingCapital)).toLocaleString('fr-FR', { maximumFractionDigits: 0 })}$ vs départ`,
           icon: <DollarSign className="h-4 w-4" />,
           positive: result.summary.finalCapital >= startingCapital,
           color: result.summary.finalCapital >= startingCapital ? '#22c55e' : '#ef4444',
@@ -184,7 +184,7 @@ export default function BacktestPanel() {
         {
           label: 'Rendement',
           value: `${result.summary.totalReturn >= 0 ? '+' : ''}${result.summary.totalReturn.toFixed(1)}%`,
-          subtitle: `${numberOfTrades} trades simules`,
+          subtitle: `${numberOfTrades} trades simulés`,
           icon: <TrendingUp className="h-4 w-4" />,
           positive: result.summary.totalReturn >= 0,
           color: result.summary.totalReturn >= 0 ? '#22c55e' : '#ef4444',
@@ -192,7 +192,7 @@ export default function BacktestPanel() {
         {
           label: 'Drawdown Max',
           value: `-${result.summary.maxDrawdown.toFixed(1)}%`,
-          subtitle: result.summary.maxDrawdown > 20 ? 'Risque eleve' : result.summary.maxDrawdown > 10 ? 'Acceptable' : 'Faible',
+          subtitle: result.summary.maxDrawdown > 20 ? 'Risque élevé' : result.summary.maxDrawdown > 10 ? 'Acceptable' : 'Faible',
           icon: <TrendingDown className="h-4 w-4" />,
           positive: false,
           color: result.summary.maxDrawdown > 20 ? '#ef4444' : result.summary.maxDrawdown > 10 ? '#f59e0b' : '#22c55e',
@@ -208,7 +208,7 @@ export default function BacktestPanel() {
         {
           label: 'Win Rate',
           value: `${result.summary.winRate.toFixed(1)}%`,
-          subtitle: `Taux de reussite simule`,
+          subtitle: `Taux de réussite simulé`,
           icon: <Target className="h-4 w-4" />,
           positive: result.summary.winRate >= 50,
           color: result.summary.winRate >= 50 ? '#22c55e' : '#ef4444',
@@ -216,7 +216,7 @@ export default function BacktestPanel() {
         {
           label: 'Total R',
           value: `${result.summary.totalR >= 0 ? '+' : ''}${result.summary.totalR.toFixed(1)}R`,
-          subtitle: 'R-multiple cumule',
+          subtitle: 'R-multiple cumulé',
           icon: <Sigma className="h-4 w-4" />,
           positive: result.summary.totalR >= 0,
           color: result.summary.totalR >= 0 ? '#22c55e' : '#ef4444',
@@ -252,7 +252,7 @@ export default function BacktestPanel() {
           </div>
           <div>
             <h2 className="text-lg font-bold text-foreground">Backtesting</h2>
-            <p className="text-xs text-muted-foreground">Simulez vos strategies avant de trader</p>
+            <p className="text-xs text-muted-foreground">Simulez vos stratégies avant de trader</p>
           </div>
         </div>
         {result && (
@@ -286,7 +286,7 @@ export default function BacktestPanel() {
           {/* Starting Capital */}
           <div className="space-y-2">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Capital de depart
+              Capital de départ
             </label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">$</span>
@@ -344,7 +344,7 @@ export default function BacktestPanel() {
           {/* Strategy Filter */}
           <div className="space-y-2">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Strategie
+              Stratégie
             </label>
             <div className="relative">
               <button
@@ -366,7 +366,7 @@ export default function BacktestPanel() {
                       onClick={() => { setStrategy('all'); setShowStrategies(false); }}
                       className={`w-full text-left px-3 py-2 text-sm transition-colors ${strategy === 'all' ? 'bg-[#ff6b2b]/10 text-[#ff6b2b]' : 'text-foreground hover:bg-muted'}`}
                     >
-                      Toutes les strategies
+                      Toutes les stratégies
                     </button>
                     {strategies.map((s) => (
                       <button
@@ -460,7 +460,7 @@ export default function BacktestPanel() {
           </div>
           <p className="text-sm font-semibold text-foreground mb-1">Aucune simulation</p>
           <p className="text-xs text-muted-foreground max-w-[280px]">
-            Configurez vos parametres ci-dessus et lancez une simulation pour voir les resultats projete
+            Configurez vos paramètres ci-dessus et lancez une simulation pour voir les résultats projetés
           </p>
         </motion.div>
       )}
@@ -478,7 +478,7 @@ export default function BacktestPanel() {
           </div>
           <p className="text-sm font-medium text-foreground">Simulation Monte Carlo en cours...</p>
           <p className="text-xs text-muted-foreground mt-1">
-            Analyse de {numberOfTrades} trades simules
+            Analyse de {numberOfTrades} trades simulés
           </p>
         </motion.div>
       )}
@@ -500,7 +500,7 @@ export default function BacktestPanel() {
             >
               <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
                 <span>
-                  Base sur <span className="font-semibold text-foreground">{result.stats.historicalTrades}</span> trades reels
+                  Basé sur <span className="font-semibold text-foreground">{result.stats.historicalTrades}</span> trades réels
                 </span>
                 <span className="w-px h-3 bg-border" />
                 <span>
@@ -552,7 +552,7 @@ export default function BacktestPanel() {
             >
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="text-sm font-semibold text-foreground">Courbe de capital simulee</h3>
+                  <h3 className="text-sm font-semibold text-foreground">Courbe de capital simulée</h3>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     Evolution du capital sur {result.simulationCount} trades
                   </p>
@@ -621,7 +621,7 @@ export default function BacktestPanel() {
                   <div>
                     <h3 className="text-sm font-semibold text-foreground">Rendements mensuels</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      Performance projete par mois
+                      Performance projetée par mois
                     </p>
                   </div>
                   <div className="flex items-center gap-2">

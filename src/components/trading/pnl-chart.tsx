@@ -18,7 +18,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
           {data.pnl >= 0 ? '+' : ''}${data.pnl.toLocaleString()}
         </p>
         <p className={`text-[10px] mt-0.5 ${data.status === 'Win' ? 'text-[#22c55e]/70' : 'text-[#ef4444]/70'}`}>
-          {data.status}
+          {data.status === 'Win' ? 'Gain' : 'Perte'}
         </p>
       </div>
     );

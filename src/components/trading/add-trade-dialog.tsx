@@ -141,7 +141,7 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
         <DialogHeader>
           <DialogTitle className="text-lg font-bold text-foreground">Ajouter un Trade</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
-            Enregistrez les details de votre nouvelle operation.
+            Enregistrez les détails de votre nouvelle opération.
           </DialogDescription>
         </DialogHeader>
 
@@ -162,14 +162,14 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground font-medium">Resultat</Label>
+              <Label className="text-xs text-muted-foreground font-medium">Résultat</Label>
               <Select value={status} onValueChange={v => setStatus(v as 'Win' | 'Loss')}>
                 <SelectTrigger className="bg-muted border-border text-foreground text-sm h-10 rounded-xl">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-popover border-border">
-                  <SelectItem value="Win" className="text-[#22c55e]">Win</SelectItem>
-                  <SelectItem value="Loss" className="text-[#ef4444]">Loss</SelectItem>
+                  <SelectItem value="Win" className="text-[#22c55e]">Gain</SelectItem>
+                  <SelectItem value="Loss" className="text-[#ef4444]">Perte</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -187,7 +187,7 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground font-medium">Categorie</Label>
+              <Label className="text-xs text-muted-foreground font-medium">Catégorie</Label>
               <Select value={category} onValueChange={v => setCategory(v as InstrumentCategory)}>
                 <SelectTrigger className="bg-muted border-border text-foreground text-sm h-10 rounded-xl">
                   <SelectValue />
@@ -216,7 +216,7 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground font-medium">Strategie</Label>
+              <Label className="text-xs text-muted-foreground font-medium">Stratégie</Label>
               <Select value={strategy} onValueChange={v => setStrategy(v as Strategy)}>
                 <SelectTrigger className="bg-muted border-border text-foreground text-sm h-10 rounded-xl">
                   <SelectValue />
@@ -234,7 +234,7 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
           {/* Row 4: Entry, SL, TP with pip calculations */}
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground font-medium">Entree</Label>
+              <Label className="text-xs text-muted-foreground font-medium">Entrée</Label>
               <Input
                 type="number"
                 step="any"
@@ -372,7 +372,7 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground font-medium">Tags</Label>
             <Input
-              placeholder="scalp, news, breakout... (separes par des virgules)"
+              placeholder="scalp, news, breakout... (séparés par des virgules)"
               value={tags}
               onChange={e => setTags(e.target.value)}
               className="bg-muted border-border text-foreground text-sm h-10 rounded-xl placeholder:text-muted-foreground/50"

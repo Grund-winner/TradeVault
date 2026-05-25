@@ -56,7 +56,7 @@ export default function DetailedAnalysis({ trades }: DetailedAnalysisProps) {
     : null;
 
   // Monthly heatmap data
-  const allMonths = ['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aou', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const allMonths = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Dec'];
   const monthMap: Record<string, number> = {};
   monthlyData.forEach(m => {
     const monthLabel = new Date(m.month + '-01').toLocaleDateString('fr-FR', { month: 'short' });
@@ -85,8 +85,8 @@ export default function DetailedAnalysis({ trades }: DetailedAnalysisProps) {
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
       {/* Header */}
       <motion.div variants={item}>
-        <h3 className="text-lg font-bold text-foreground">Analyse Detaillee</h3>
-        <p className="text-xs text-muted-foreground mt-0.5">Decoupage complet de vos performances par categorie</p>
+        <h3 className="text-lg font-bold text-foreground">Analyse Détaillée</h3>
+        <p className="text-xs text-muted-foreground mt-0.5">Découpage complet de vos performances par catégorie</p>
       </motion.div>
 
       {/* Top Stats Row */}
@@ -97,7 +97,7 @@ export default function DetailedAnalysis({ trades }: DetailedAnalysisProps) {
             <span className="text-xs text-muted-foreground">Meilleur mois</span>
           </div>
           <p className="text-lg font-bold text-[#22c55e]">{bestMonth ? `+$${bestMonth.pnl.toLocaleString()}` : 'N/A'}</p>
-          <p className="text-[10px] text-muted-foreground mt-1">{bestMonth?.label || 'Aucune donnee'}</p>
+          <p className="text-[10px] text-muted-foreground mt-1">{bestMonth?.label || 'Aucune donnée'}</p>
         </div>
         <div className="glass-card rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-2">
@@ -232,7 +232,7 @@ export default function DetailedAnalysis({ trades }: DetailedAnalysisProps) {
                 </div>
                 <div className="flex gap-4 text-[10px] text-muted-foreground">
                   <span>Gains moyens: <span className="text-foreground font-medium">{(d.totalR > 0 ? '+' : '')}{(d.totalR / Math.max(d.total, 1)).toFixed(1)}R</span></span>
-                  <span>Win Rate: <span className="text-foreground font-medium">{d.winRate}%</span></span>
+                  <span>Taux de réussite: <span className="text-foreground font-medium">{d.winRate}%</span></span>
                 </div>
               </div>
             ))}
@@ -330,7 +330,7 @@ export default function DetailedAnalysis({ trades }: DetailedAnalysisProps) {
         <div className="glass-card rounded-2xl p-5 text-center col-span-2 md:col-span-1">
           <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">Series gagnantes</p>
           <p className="text-2xl font-bold text-[#ff6b2b]">{kpis.maxConsWins}</p>
-          <p className="text-xs text-muted-foreground mt-1">Max consecutive</p>
+          <p className="text-xs text-muted-foreground mt-1">Consécutifs max</p>
         </div>
       </motion.div>
     </motion.div>
