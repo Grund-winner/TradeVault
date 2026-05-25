@@ -4,13 +4,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   LayoutDashboard, Users, CreditCard, ArrowLeft, Shield, Search,
-  Eye, Ban, CheckCircle, DollarSign, TrendingUp, UserPlus, Clock,
-  AlertTriangle, Loader2, RefreshCw, Crown, Gift, LogIn
+  Eye, Ban, CheckCircle, DollarSign, TrendingUp, Crown, Gift,
+  AlertTriangle, Loader2, RefreshCw, Clock, LogIn, Settings, Save,
+  UserCog, ShieldOff, GiftIcon
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-type Tab = 'dashboard' | 'users' | 'trades' | 'subscriptions';
+type Tab = 'dashboard' | 'users' | 'trades' | 'subscriptions' | 'config';
 
 interface UserRow {
   id: string;
@@ -32,6 +33,18 @@ interface PlatformStats {
   trades: { total: number; totalPnl: number };
 }
 
+interface TradeRow {
+  id: number;
+  date: string;
+  instrument: string;
+  direction: string;
+  pnl: number;
+  userEmail: string;
+  status: string;
+  type: string;
+  strategy: string;
+}
+
 export default function AdminPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
@@ -40,31 +53,37 @@ export default function AdminPage() {
   const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
   const [userDetail, setUserDetail] = useState<Record<string, unknown> | null>(null);
   const [userTrades, setUserTrades] = useState<unknown[]>([]);
+  const [allTrades, setAllTrades] = useState<TradeRow[]>([]);
+  const [tradeSearch, setTradeSearch] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Config state
+  const [whatsappLink, setWhatsappLink] = useState('');
+  const [telegramLink, setTelegramLink] = useState('');
+  const [configSaving, setConfigSaving] = useState(false);
+  const [configSaved, setConfigSaved] = useState(false);
+  const [configLoading, setConfigLoading] = useState(false);
+
   const fetchAdminData = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      // Check admin access by fetching stats
       const statsRes = await fetch('/api/admin/stats');
 
-      // Not authenticated -> redirect to login
       if (statsRes.status === 401) {
         setLoading(false);
         router.push('/login?from=/admin');
         return;
       }
 
-      // Authenticated but not admin
       if (statsRes.status === 403) {
         setIsAdmin(false);
-        setError('Vous n\'avez pas les droits administrateur.');
+        setError("Vous n'avez pas les droits administrateur.");
         setLoading(false);
         return;
       }
@@ -80,13 +99,19 @@ export default function AdminPage() {
       const statsData = await statsRes.json();
       setStats(statsData);
 
-      // Fetch users
       const usersRes = await fetch('/api/admin/users');
       if (usersRes.ok) {
         const usersData = await usersRes.json();
         setUsers(usersData);
       } else {
         setError('Impossible de charger les utilisateurs.');
+      }
+
+      // Fetch all trades
+      const tradesRes = await fetch('/api/admin/trades');
+      if (tradesRes.ok) {
+        const tradesData = await tradesRes.json();
+        setAllTrades(tradesData);
       }
     } catch (err) {
       setError(`Erreur de connexion: ${err instanceof Error ? err.message : 'Inconnue'}`);
@@ -95,9 +120,29 @@ export default function AdminPage() {
     }
   }, []);
 
+  const fetchConfig = useCallback(async () => {
+    setConfigLoading(true);
+    try {
+      const res = await fetch('/api/admin/config');
+      if (res.ok) {
+        const data = await res.json();
+        setWhatsappLink(data.whatsappLink || '');
+        setTelegramLink(data.telegramLink || '');
+      }
+    } catch {
+      // silent
+    } finally {
+      setConfigLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchAdminData();
   }, [fetchAdminData]);
+
+  useEffect(() => {
+    if (activeTab === 'config') fetchConfig();
+  }, [activeTab, fetchConfig]);
 
   const viewUser = async (user: UserRow) => {
     setSelectedUser(user);
@@ -130,9 +175,7 @@ export default function AdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: 'admin' }),
       });
-      if (res.ok) {
-        fetchAdminData();
-      }
+      if (res.ok) fetchAdminData();
     } catch { /* silent */ }
   };
 
@@ -144,9 +187,7 @@ export default function AdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: 'user' }),
       });
-      if (res.ok) {
-        fetchAdminData();
-      }
+      if (res.ok) fetchAdminData();
     } catch { /* silent */ }
   };
 
@@ -157,15 +198,34 @@ export default function AdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ grantSubscription: true }),
       });
-      if (res.ok) {
-        fetchAdminData();
-      }
+      if (res.ok) fetchAdminData();
     } catch { /* silent */ }
+  };
+
+  const saveConfig = async () => {
+    setConfigSaving(true);
+    setConfigSaved(false);
+    try {
+      const res = await fetch('/api/admin/config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ whatsappLink, telegramLink }),
+      });
+      if (res.ok) {
+        setConfigSaved(true);
+        setTimeout(() => setConfigSaved(false), 2000);
+      }
+    } catch {
+      // silent
+    } finally {
+      setConfigSaving(false);
+    }
   };
 
   const handleRefresh = async () => {
     setRefreshing(true);
     await fetchAdminData();
+    if (activeTab === 'config') fetchConfig();
     setRefreshing(false);
   };
 
@@ -173,11 +233,18 @@ export default function AdminPage() {
     u.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const filteredTrades = allTrades.filter(t =>
+    t.instrument.toLowerCase().includes(tradeSearch.toLowerCase()) ||
+    t.userEmail.toLowerCase().includes(tradeSearch.toLowerCase()) ||
+    t.direction.toLowerCase().includes(tradeSearch.toLowerCase())
+  );
+
   const sidebarItems: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'users', label: 'Utilisateurs', icon: Users },
     { id: 'trades', label: 'Trades', icon: TrendingUp },
     { id: 'subscriptions', label: 'Abonnements', icon: CreditCard },
+    { id: 'config', label: 'Configuration', icon: Settings },
   ];
 
   // Loading state
@@ -192,7 +259,6 @@ export default function AdminPage() {
     );
   }
 
-  // Not admin - show error with login button
   if (!isAdmin) {
     return (
       <div className="flex min-h-screen bg-background items-center justify-center">
@@ -200,9 +266,9 @@ export default function AdminPage() {
           <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto">
             <AlertTriangle className="h-8 w-8 text-red-500" />
           </div>
-          <h2 className="text-xl font-bold text-foreground">Accès Refusé</h2>
+          <h2 className="text-xl font-bold text-foreground">Acces Refuse</h2>
           <p className="text-sm text-muted-foreground">
-            {error || 'Vous n\'avez pas les permissions nécessaires pour accéder à cette page.'}
+            {error || "Vous n'avez pas les permissions necessaires pour acceder a cette page."}
           </p>
           <div className="flex gap-3">
             <Link
@@ -225,7 +291,6 @@ export default function AdminPage() {
     );
   }
 
-  // Error state but IS admin
   if (error && users.length === 0) {
     return (
       <div className="flex min-h-screen bg-background items-center justify-center">
@@ -241,7 +306,7 @@ export default function AdminPage() {
             className="flex items-center justify-center gap-2 mx-auto px-6 py-3 rounded-xl bg-[#ff6b2b] text-white font-medium text-sm hover:bg-[#ff4500] transition-all"
           >
             {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-            Réessayer
+            Reessayer
           </button>
         </div>
       </div>
@@ -297,15 +362,15 @@ export default function AdminPage() {
 
       {/* Main Content */}
       <main className="flex-1 p-6 overflow-y-auto">
-        {/* Error banner if partial error */}
         {error && (
           <div className="flex items-center gap-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 mb-6">
             <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0" />
             <p className="text-xs text-amber-200">{error}</p>
-            <button onClick={handleRefresh} className="ml-auto text-xs text-amber-400 hover:text-amber-300 whitespace-nowrap">Réessayer</button>
+            <button onClick={handleRefresh} className="ml-auto text-xs text-amber-400 hover:text-amber-300 whitespace-nowrap">Reessayer</button>
           </div>
         )}
 
+        {/* DASHBOARD TAB */}
         {activeTab === 'dashboard' && stats && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
             <h2 className="text-xl font-bold text-foreground">Dashboard Admin</h2>
@@ -319,6 +384,7 @@ export default function AdminPage() {
           </motion.div>
         )}
 
+        {/* USERS TAB */}
         {activeTab === 'users' && !selectedUser && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
             <div className="flex items-center justify-between">
@@ -339,84 +405,101 @@ export default function AdminPage() {
               <div className="text-center py-16 rounded-2xl border border-border bg-card">
                 <Users className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
                 <p className="text-sm text-muted-foreground">
-                  {users.length === 0 ? 'Aucun utilisateur inscrit pour le moment.' : 'Aucun utilisateur trouvé pour cette recherche.'}
+                  {users.length === 0 ? 'Aucun utilisateur inscrit pour le moment.' : 'Aucun utilisateur trouve pour cette recherche.'}
                 </p>
               </div>
             ) : (
               <div className="rounded-2xl border border-border bg-card overflow-hidden">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border">
-                      <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Email</th>
-                      <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Role</th>
-                      <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Abonnement</th>
-                      <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Statut</th>
-                      <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Inscription</th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredUsers.map(user => (
-                      <tr key={user.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
-                        <td className="px-4 py-3 text-sm text-foreground">{user.email}</td>
-                        <td className="px-4 py-3">
-                          <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
-                            user.role === 'admin' ? 'bg-primary/10 text-primary' :
-                            user.role === 'host' ? 'bg-blue-500/10 text-blue-500' :
-                            'bg-muted text-muted-foreground'
-                          }`}>{user.role}</span>
-                        </td>
-                        <td className="px-4 py-3">
-                          {user.subStatus === 'active' ? (
-                            <span className="text-xs text-green-500">Actif</span>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">Expire</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3">
-                          {user.isActive ? (
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                          ) : (
-                            <Ban className="h-4 w-4 text-red-500" />
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-xs text-muted-foreground">
-                          {new Date(user.createdAt).toLocaleDateString('fr-FR')}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <button onClick={() => viewUser(user)} className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all" title="Voir">
-                              <Eye className="h-4 w-4" />
-                            </button>
-                            {user.role !== 'admin' && user.role !== 'host' && (
-                              <button onClick={() => promoteToAdmin(user)} className="p-2 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all" title="Promouvoir Admin">
-                                <Crown className="h-4 w-4" />
-                              </button>
-                            )}
-                            {(user.role === 'admin' || user.role === 'host') && (
-                              <button onClick={() => demoteToUser(user)} className="p-2 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500 transition-all" title="Retirer Admin">
-                                <Shield className="h-4 w-4" />
-                              </button>
-                            )}
-                            {user.subStatus !== 'active' && (
-                              <button onClick={() => grantSubscription(user.id)} className="p-2 rounded-lg hover:bg-green-500/10 text-muted-foreground hover:text-green-500 transition-all" title="Donner abonnement">
-                                <Gift className="h-4 w-4" />
-                              </button>
-                            )}
-                            <button onClick={() => toggleUserActive(user.id, user.isActive)} className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all" title={user.isActive ? 'Desactiver' : 'Activer'}>
-                              {user.isActive ? <Ban className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
-                            </button>
-                          </div>
-                        </td>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Email</th>
+                        <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Role</th>
+                        <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Abonnement</th>
+                        <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Statut</th>
+                        <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Inscription</th>
+                        <th className="text-right px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {filteredUsers.map(user => (
+                        <tr key={user.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
+                          <td className="px-4 py-3 text-sm text-foreground">{user.email}</td>
+                          <td className="px-4 py-3">
+                            <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
+                              user.role === 'admin' ? 'bg-primary/10 text-primary' :
+                              user.role === 'host' ? 'bg-blue-500/10 text-blue-500' :
+                              'bg-muted text-muted-foreground'
+                            }`}>{user.role}</span>
+                          </td>
+                          <td className="px-4 py-3">
+                            {user.subStatus === 'active' ? (
+                              <span className="text-xs text-green-500">Actif</span>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">Expire</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            {user.isActive ? (
+                              <CheckCircle className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <Ban className="h-4 w-4 text-red-500" />
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-xs text-muted-foreground">
+                            {new Date(user.createdAt).toLocaleDateString('fr-FR')}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <button onClick={() => viewUser(user)} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all text-xs" title="Voir les details">
+                                <Eye className="h-3.5 w-3.5" />
+                                <span className="hidden xl:inline">Voir</span>
+                              </button>
+                              {user.role !== 'admin' && user.role !== 'host' && (
+                                <button onClick={() => promoteToAdmin(user)} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all text-xs" title="Promouvoir Admin">
+                                  <UserCog className="h-3.5 w-3.5" />
+                                  <span className="hidden xl:inline">Admin</span>
+                                </button>
+                              )}
+                              {(user.role === 'admin' || user.role === 'host') && (
+                                <button onClick={() => demoteToUser(user)} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-red-500/10 text-muted-foreground hover:text-red-500 transition-all text-xs" title="Retirer Admin">
+                                  <ShieldOff className="h-3.5 w-3.5" />
+                                  <span className="hidden xl:inline">Retirer</span>
+                                </button>
+                              )}
+                              {user.subStatus !== 'active' && (
+                                <button onClick={() => grantSubscription(user.id)} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-green-500/10 text-muted-foreground hover:text-green-500 transition-all text-xs" title="Donner abonnement">
+                                  <GiftIcon className="h-3.5 w-3.5" />
+                                  <span className="hidden xl:inline">Abonner</span>
+                                </button>
+                              )}
+                              <button onClick={() => toggleUserActive(user.id, user.isActive)} className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all text-xs ${user.isActive ? 'hover:bg-red-500/10 text-muted-foreground hover:text-red-500' : 'hover:bg-green-500/10 text-muted-foreground hover:text-green-500'}`} title={user.isActive ? 'Desactiver' : 'Activer'}>
+                                {user.isActive ? (
+                                  <>
+                                    <Ban className="h-3.5 w-3.5" />
+                                    <span className="hidden xl:inline">Bloquer</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <CheckCircle className="h-3.5 w-3.5" />
+                                    <span className="hidden xl:inline">Activer</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </motion.div>
         )}
 
+        {/* USER DETAIL VIEW */}
         {activeTab === 'users' && selectedUser && userDetail && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
             <button onClick={() => setSelectedUser(null)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -465,13 +548,79 @@ export default function AdminPage() {
           </motion.div>
         )}
 
+        {/* TRADES TAB */}
         {activeTab === 'trades' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-            <h2 className="text-xl font-bold text-foreground">Tous les Trades</h2>
-            <p className="text-sm text-muted-foreground">Selectionnez un utilisateur dans la section &quot;Utilisateurs&quot; pour voir ses trades.</p>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-foreground">Tous les Trades ({allTrades.length})</h2>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Rechercher instrument, email..."
+                  value={tradeSearch}
+                  onChange={e => setTradeSearch(e.target.value)}
+                  className="pl-10 pr-4 py-2 rounded-xl bg-muted border border-border text-foreground text-sm focus:outline-none focus:border-primary/50 w-72"
+                />
+              </div>
+            </div>
+
+            {filteredTrades.length === 0 ? (
+              <div className="text-center py-16 rounded-2xl border border-border bg-card">
+                <TrendingUp className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">
+                  {allTrades.length === 0 ? 'Aucun trade enregistre pour le moment.' : 'Aucun trade trouve pour cette recherche.'}
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-border bg-card overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Date</th>
+                        <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Instrument</th>
+                        <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Direction</th>
+                        <th className="text-right px-4 py-3 text-xs font-medium text-muted-foreground uppercase">P&L</th>
+                        <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Utilisateur</th>
+                        <th className="text-left px-4 py-3 text-xs font-medium text-muted-foreground uppercase">Statut</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredTrades.slice(0, 100).map((trade) => (
+                        <tr key={trade.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
+                          <td className="px-4 py-3 text-sm text-muted-foreground">{trade.date}</td>
+                          <td className="px-4 py-3 text-sm font-medium text-foreground">{trade.instrument}</td>
+                          <td className="px-4 py-3">
+                            <span className={`text-xs font-medium ${trade.direction === 'BUY' || trade.direction === 'LONG' ? 'text-green-500' : 'text-red-500'}`}>
+                              {trade.direction}
+                            </span>
+                          </td>
+                          <td className={`px-4 py-3 text-sm font-medium text-right ${trade.pnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                            {trade.pnl >= 0 ? '+' : ''}{trade.pnl.toFixed(2)}€
+                          </td>
+                          <td className="px-4 py-3 text-xs text-muted-foreground">{trade.userEmail || '-'}</td>
+                          <td className="px-4 py-3">
+                            <span className={`text-xs ${trade.status === 'win' ? 'text-green-500' : trade.status === 'loss' ? 'text-red-500' : 'text-muted-foreground'}`}>
+                              {trade.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {filteredTrades.length > 100 && (
+                  <div className="px-4 py-3 text-xs text-muted-foreground text-center border-t border-border/50">
+                    Affichage des 100 premiers résultats sur {filteredTrades.length}
+                  </div>
+                )}
+              </div>
+            )}
           </motion.div>
         )}
 
+        {/* SUBSCRIPTIONS TAB */}
         {activeTab === 'subscriptions' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
             <h2 className="text-xl font-bold text-foreground">Abonnements</h2>
@@ -500,6 +649,90 @@ export default function AdminPage() {
                 </div>
               </div>
             )}
+          </motion.div>
+        )}
+
+        {/* CONFIG TAB */}
+        {activeTab === 'config' && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 max-w-2xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-foreground">Configuration</h2>
+                <p className="text-sm text-muted-foreground mt-1">Gerer les liens de la communaute et les parametres de la plateforme</p>
+              </div>
+            </div>
+
+            {/* Community Links */}
+            <div className="rounded-2xl border border-border bg-card p-6 space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-green-400" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Liens de la Communaute</p>
+                  <p className="text-[11px] text-muted-foreground">Les liens WhatsApp et Telegram visibles par les utilisateurs Pro</p>
+                </div>
+              </div>
+
+              <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+
+              {configLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-5 w-5 text-primary animate-spin mr-2" />
+                  <span className="text-sm text-muted-foreground">Chargement...</span>
+                </div>
+              ) : (
+                <>
+                  {/* WhatsApp Link */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Lien WhatsApp
+                    </label>
+                    <input
+                      type="url"
+                      value={whatsappLink}
+                      onChange={e => setWhatsappLink(e.target.value)}
+                      placeholder="https://chat.whatsapp.com/..."
+                      className="w-full px-4 py-3 rounded-xl bg-muted border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
+                    />
+                  </div>
+
+                  {/* Telegram Link */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Lien Telegram
+                    </label>
+                    <input
+                      type="url"
+                      value={telegramLink}
+                      onChange={e => setTelegramLink(e.target.value)}
+                      placeholder="https://t.me/..."
+                      className="w-full px-4 py-3 rounded-xl bg-muted border border-border text-foreground text-sm placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all"
+                    />
+                  </div>
+
+                  {/* Save button */}
+                  <motion.button
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={saveConfig}
+                    disabled={configSaving}
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#ff6b2b] to-[#ff4500] text-white font-medium text-sm shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transition-all disabled:opacity-50"
+                  >
+                    {configSaving ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : configSaved ? (
+                      <CheckCircle className="h-4 w-4" />
+                    ) : (
+                      <Save className="h-4 w-4" />
+                    )}
+                    {configSaving ? 'Enregistrement...' : configSaved ? 'Enregistre !' : 'Enregistrer'}
+                  </motion.button>
+                </>
+              )}
+            </div>
           </motion.div>
         )}
       </main>

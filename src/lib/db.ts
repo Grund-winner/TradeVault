@@ -229,4 +229,46 @@ export async function ensureDatabase() {
   } catch (error) {
     console.error('[TradeVault] Failed to create admin_logs table:', error)
   }
+
+  // Add avatarUrl column to users
+  try {
+    await client.$executeRawUnsafe(`
+      DO $$ BEGIN
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS "avatarUrl" TEXT;
+      EXCEPTION WHEN OTHERS THEN NULL;
+      END $$;
+    `)
+  } catch (error) {
+    console.error('[TradeVault] Failed to add avatarUrl column:', error)
+  }
+
+  // Create platform_configs table
+  try {
+    await client.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS platform_configs (
+        id TEXT PRIMARY KEY,
+        key TEXT NOT NULL UNIQUE,
+        value TEXT NOT NULL,
+        "updatedAt" TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+    `)
+  } catch (error) {
+    console.error('[TradeVault] Failed to create platform_configs table:', error)
+  }
+
+  // Seed default platform configs
+  try {
+    await client.$executeRawUnsafe(`
+      INSERT INTO platform_configs (id, key, value)
+      VALUES ('default_whatsapp', 'whatsapp_link', '')
+      ON CONFLICT (key) DO NOTHING;
+    `)
+    await client.$executeRawUnsafe(`
+      INSERT INTO platform_configs (id, key, value)
+      VALUES ('default_telegram', 'telegram_link', '')
+      ON CONFLICT (key) DO NOTHING;
+    `)
+  } catch (error) {
+    console.error('[TradeVault] Failed to seed platform configs:', error)
+  }
 }

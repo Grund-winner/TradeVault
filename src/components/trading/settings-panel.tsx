@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Save, LogOut, Moon, Sun, Loader2, Check, Crown, ExternalLink, Wallet, Link2, Key, Download, RefreshCw, Copy, CheckCircle2, Zap, Monitor } from 'lucide-react';
+import { Settings, Save, LogOut, Moon, Sun, Loader2, Check, Crown, ExternalLink, Wallet, Link2, Key, Download, RefreshCw, Copy, CheckCircle2, Zap, Monitor, Camera, Trash2, Upload } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -32,6 +32,7 @@ interface SettingsPanelProps {
   onOpenChange: (open: boolean) => void;
   onLogout: () => void;
   onSettingsSaved?: (settings: { siteName: string; siteSubtitle: string; theme: string }) => void;
+  onAvatarSaved?: (avatarUrl: string | null) => void;
 }
 
 export default function SettingsPanel({
@@ -39,6 +40,7 @@ export default function SettingsPanel({
   onOpenChange,
   onLogout,
   onSettingsSaved,
+  onAvatarSaved,
 }: SettingsPanelProps) {
   const [siteName, setSiteName] = useState('');
   const [siteSubtitle, setSiteSubtitle] = useState('');
@@ -59,6 +61,10 @@ export default function SettingsPanel({
   const [isGeneratingKey, setIsGeneratingKey] = useState(false);
   const [showFullKey, setShowFullKey] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
+
+  // Avatar state
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   const WEBHOOK_URL = 'https://trade-vault-xi.vercel.app/api/webhook/mt4';
 
@@ -83,6 +89,7 @@ export default function SettingsPanel({
           if (data.mt.accountId) setMtAccountId(data.mt.accountId);
           if (data.mt.server) setMtServer(data.mt.server);
         }
+        if (data.avatarUrl) setAvatarUrl(data.avatarUrl);
       }
     } catch {
       setSiteName('TradeVault');
@@ -99,8 +106,71 @@ export default function SettingsPanel({
       setNewApiKey('');
       setShowFullKey(false);
       setCopiedKey(false);
+      setIsUploadingAvatar(false);
     }
   }, [open, fetchSettings]);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (200KB max)
+    if (file.size > 200 * 1024) {
+      alert('L\'image ne doit pas depasser 200 Ko.');
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Veuillez selectionner un fichier image.');
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64 = reader.result as string;
+        try {
+          const res = await fetch('/api/auth/settings', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ avatarUrl: base64 }),
+          });
+          if (res.ok) {
+            setAvatarUrl(base64);
+            onAvatarSaved?.(base64);
+          }
+        } catch {
+          // silently fail
+        } finally {
+          setIsUploadingAvatar(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    setIsUploadingAvatar(true);
+    try {
+      const res = await fetch('/api/auth/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatarUrl: null }),
+      });
+      if (res.ok) {
+        setAvatarUrl(null);
+        onAvatarSaved?.(null);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -258,6 +328,62 @@ export default function SettingsPanel({
                     placeholder="Analytics Pro"
                     className="h-11 rounded-xl bg-muted border-border text-foreground placeholder:text-muted-foreground text-sm focus-visible:border-primary/50 focus-visible:ring-primary/20"
                   />
+                </motion.div>
+
+                {/* Divider */}
+                <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+
+                {/* Avatar Upload */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.075 }}
+                  className="space-y-3"
+                >
+                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Photo de profil
+                  </Label>
+                  <div className="flex items-center gap-4">
+                    <div className="relative">
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center text-lg font-bold text-white overflow-hidden">
+                        {avatarUrl ? (
+                          <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          'TV'
+                        )}
+                      </div>
+                      {isUploadingAvatar && (
+                        <div className="absolute inset-0 rounded-2xl bg-background/60 flex items-center justify-center">
+                          <Loader2 className="h-4 w-4 text-primary animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-muted border border-border text-foreground text-xs font-medium hover:bg-accent transition-all cursor-pointer">
+                        <Upload className="h-3.5 w-3.5" />
+                        Changer
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleAvatarUpload}
+                          className="hidden"
+                        />
+                      </label>
+                      {avatarUrl && (
+                        <button
+                          onClick={handleRemoveAvatar}
+                          disabled={isUploadingAvatar}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-destructive hover:bg-destructive/10 transition-all disabled:opacity-50"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          Supprimer
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground/60">
+                    JPG, PNG ou GIF. Taille maximale : 200 Ko.
+                  </p>
                 </motion.div>
 
                 {/* Divider */}

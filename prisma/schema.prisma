@@ -49,6 +49,7 @@ model User {
   locale        String    @default("fr")
   sessionToken  String?   @map("sessionToken")
   isActive      Boolean   @default(true)
+  avatarUrl     String?   @map("avatarUrl")
   mtApiKey      String?   @map("mtApiKey")
   mtAccountId   String?   @map("mtAccountId")
   mtServer      String?   @map("mtServer")
@@ -104,6 +105,15 @@ model AiConversation {
   updatedAt     DateTime @updatedAt
 
   @@map("ai_conversations")
+}
+
+model PlatformConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+
+  @@map("platform_configs")
 }
 
 model AdminLog {

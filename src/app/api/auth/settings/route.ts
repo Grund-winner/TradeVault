@@ -14,7 +14,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const { siteName, siteSubtitle, theme, initialBalance, mtAccountId, mtServer, mtPlatform } = await request.json();
+    const { siteName, siteSubtitle, theme, initialBalance, mtAccountId, mtServer, mtPlatform, avatarUrl } = await request.json();
 
     const updates: string[] = [];
     const values: unknown[] = [];
@@ -60,6 +60,16 @@ export async function PUT(request: NextRequest) {
       updates.push(`"mtPlatform" = $${paramIndex}`);
       values.push(mtPlatform);
       paramIndex++;
+    }
+
+    if (avatarUrl !== undefined) {
+      if (avatarUrl === null) {
+        updates.push(`"avatarUrl" = NULL`);
+      } else {
+        updates.push(`"avatarUrl" = $${paramIndex}`);
+        values.push(String(avatarUrl));
+        paramIndex++;
+      }
     }
 
     if (updates.length === 0) {

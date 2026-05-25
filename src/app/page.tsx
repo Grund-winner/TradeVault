@@ -84,6 +84,8 @@ export default function Home() {
   const [showSettings, setShowSettings] = useState(false);
   const [userRole, setUserRole] = useState('user');
   const [initialBalance, setInitialBalance] = useState(0);
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState('');
 
   // Load user settings from session
   const fetchSession = useCallback(async () => {
@@ -96,6 +98,8 @@ export default function Home() {
         if (data.role) setUserRole(data.role);
         if (data.initialBalance) setInitialBalance(Number(data.initialBalance) || 0);
         if (data.subscription) setSubscription(data.subscription);
+        if (data.email) setUserEmail(data.email);
+        if (data.avatarUrl) setUserAvatarUrl(data.avatarUrl);
         // Apply theme from saved settings
         if (data.theme === 'light') {
           document.documentElement.classList.remove('dark');
@@ -202,6 +206,11 @@ export default function Home() {
     }
   };
 
+  // Handle avatar saved
+  const handleAvatarSaved = (newAvatarUrl: string | null) => {
+    setUserAvatarUrl(newAvatarUrl);
+  };
+
   const pageVariants = {
     initial: { opacity: 0, y: 12 },
     animate: { opacity: 1, y: 0, transition: { duration: 0.3 } },
@@ -253,6 +262,8 @@ export default function Home() {
         <Header
           siteName={siteName}
           onSettingsClick={() => setShowSettings(true)}
+          avatarUrl={userAvatarUrl}
+          userEmail={userEmail}
         />
 
         <div className="px-4 md:px-6 py-6 max-w-[1600px] mx-auto">
@@ -481,6 +492,7 @@ export default function Home() {
         onOpenChange={setShowSettings}
         onLogout={handleLogout}
         onSettingsSaved={handleSettingsSaved}
+        onAvatarSaved={handleAvatarSaved}
       />
     </div>
   );

@@ -20,10 +20,18 @@ function PricingContent() {
     if (searchParams.get('expired') === 'true') setIsExpired(true);
     if (searchParams.get('cancelled') === 'true') setError('Paiement annule. Reessayez.');
 
-    // Check if user is logged in
+    // Check if user is logged in & apply theme
     fetch('/api/auth/session')
       .then(res => res.json())
-      .then(data => setIsLoggedIn(!!data.exists))
+      .then(data => {
+        setIsLoggedIn(!!data.exists);
+        // Apply theme preference
+        if (data.theme === 'light') {
+          document.documentElement.classList.remove('dark');
+        } else {
+          document.documentElement.classList.add('dark');
+        }
+      })
       .catch(() => {});
   }, [searchParams]);
 

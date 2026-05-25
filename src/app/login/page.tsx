@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, Eye, EyeOff, ArrowRight, UserPlus, LogIn } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, UserPlus, LogIn } from 'lucide-react';
 
 type Tab = 'login' | 'register';
 
@@ -22,6 +22,16 @@ function LoginForm() {
 
   // Get redirect destination after login
   const redirectTo = searchParams.get('from') || '/';
+
+  // Apply saved theme on mount
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('tv-theme');
+    if (savedTheme === 'light') {
+      document.documentElement.classList.remove('dark');
+    } else {
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,13 +103,13 @@ function LoginForm() {
   const handleSubmit = activeTab === 'login' ? handleLogin : handleRegister;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f] relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#ff6b2b]/5 rounded-full blur-[120px] animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-[#ff4500]/5 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full border border-white/[0.02]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full border border-white/[0.03]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full border border-border/30" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full border border-border/40" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] rounded-full border border-[#ff6b2b]/10" />
       </div>
 
@@ -124,11 +134,11 @@ function LoginForm() {
               <img src="/logo.png" alt="TradeVault" className="w-7 h-7 object-contain" />
             </div>
             <div className="text-left">
-              <h1 className="text-2xl font-bold text-white tracking-tight">TradeVault</h1>
-              <p className="text-[10px] text-[#94a3b8] uppercase tracking-widest">Analytics Pro</p>
+              <h1 className="text-2xl font-bold text-foreground tracking-tight">TradeVault</h1>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Analytics Pro</p>
             </div>
           </div>
-          <p className="text-sm text-[#94a3b8]">
+          <p className="text-sm text-muted-foreground">
             Votre tableau de bord de trading professionnel
           </p>
         </motion.div>
@@ -138,16 +148,16 @@ function LoginForm() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="rounded-3xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-2xl shadow-2xl shadow-black/20 p-8"
+          className="rounded-3xl border border-border bg-card backdrop-blur-2xl shadow-2xl p-8"
         >
           {/* Tab Switcher */}
-          <div className="flex items-center gap-1 p-1 rounded-xl bg-white/[0.04] mb-8">
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-muted mb-8">
             {(['login', 'register'] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => { setActiveTab(tab); setError(''); setSuccess(''); }}
                 className={`relative flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 ${
-                  activeTab === tab ? 'text-white' : 'text-[#94a3b8] hover:text-white/80'
+                  activeTab === tab ? 'text-foreground' : 'text-muted-foreground hover:text-foreground/80'
                 }`}
               >
                 {activeTab === tab && (
@@ -169,7 +179,7 @@ function LoginForm() {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email */}
             <div className="space-y-2">
-              <label className="text-xs font-medium text-[#94a3b8] uppercase tracking-wider">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Email
               </label>
               <input
@@ -178,13 +188,13 @@ function LoginForm() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="votre@email.com"
                 required
-                className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-[#475569] text-sm focus:outline-none focus:border-[#ff6b2b]/50 focus:ring-1 focus:ring-[#ff6b2b]/20 transition-all"
+                className="w-full px-4 py-3 rounded-xl bg-muted border border-border text-foreground placeholder:text-muted-foreground/50 text-sm focus:outline-none focus:border-[#ff6b2b]/50 focus:ring-1 focus:ring-[#ff6b2b]/20 transition-all"
               />
             </div>
 
             {/* Password */}
             <div className="space-y-2">
-              <label className="text-xs font-medium text-[#94a3b8] uppercase tracking-wider">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Mot de passe
               </label>
               <div className="relative">
@@ -194,12 +204,12 @@ function LoginForm() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-[#475569] text-sm focus:outline-none focus:border-[#ff6b2b]/50 focus:ring-1 focus:ring-[#ff6b2b]/20 transition-all pr-12"
+                  className="w-full px-4 py-3 rounded-xl bg-muted border border-border text-foreground placeholder:text-muted-foreground/50 text-sm focus:outline-none focus:border-[#ff6b2b]/50 focus:ring-1 focus:ring-[#ff6b2b]/20 transition-all pr-12"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#475569] hover:text-[#94a3b8] transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -216,7 +226,7 @@ function LoginForm() {
                   transition={{ duration: 0.3 }}
                   className="space-y-2 overflow-hidden"
                 >
-                  <label className="text-xs font-medium text-[#94a3b8] uppercase tracking-wider">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Confirmer le mot de passe
                   </label>
                   <div className="relative">
@@ -226,12 +236,12 @@ function LoginForm() {
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="••••••••"
                       required
-                      className="w-full px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white placeholder:text-[#475569] text-sm focus:outline-none focus:border-[#ff6b2b]/50 focus:ring-1 focus:ring-[#ff6b2b]/20 transition-all pr-12"
+                      className="w-full px-4 py-3 rounded-xl bg-muted border border-border text-foreground placeholder:text-muted-foreground/50 text-sm focus:outline-none focus:border-[#ff6b2b]/50 focus:ring-1 focus:ring-[#ff6b2b]/20 transition-all pr-12"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirm(!showConfirm)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-[#475569] hover:text-[#94a3b8] transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -247,7 +257,7 @@ function LoginForm() {
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -5 }}
-                  className="px-4 py-3 rounded-xl bg-[#ef4444]/10 border border-[#ef4444]/20 text-[#ef4444] text-sm"
+                  className="px-4 py-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm"
                 >
                   {error}
                 </motion.div>
@@ -261,7 +271,7 @@ function LoginForm() {
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -5 }}
-                  className="px-4 py-3 rounded-xl bg-[#22c55e]/10 border border-[#22c55e]/20 text-[#22c55e] text-sm"
+                  className="px-4 py-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-500 text-sm"
                 >
                   {success}
                 </motion.div>
@@ -289,13 +299,13 @@ function LoginForm() {
 
           {/* Divider */}
           <div className="flex items-center gap-4 my-6">
-            <div className="flex-1 h-px bg-gradient-to-r from-transparent to-white/10" />
-            <span className="text-[10px] text-[#475569] uppercase tracking-widest">securise</span>
-            <div className="flex-1 h-px bg-gradient-to-l from-transparent to-white/10" />
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent to-border" />
+            <span className="text-[10px] text-muted-foreground uppercase tracking-widest">securise</span>
+            <div className="flex-1 h-px bg-gradient-to-l from-transparent to-border" />
           </div>
 
           {/* Footer */}
-          <p className="text-center text-[11px] text-[#475569]">
+          <p className="text-center text-[11px] text-muted-foreground">
             Vos donnees sont protegees et stockees en toute securite
           </p>
         </motion.div>
@@ -305,7 +315,7 @@ function LoginForm() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
-          className="text-center text-[10px] text-[#475569] mt-6 uppercase tracking-wider"
+          className="text-center text-[10px] text-muted-foreground mt-6 uppercase tracking-wider"
         >
           TradeVault v2.0 — Trading Analytics Dashboard
         </motion.p>
@@ -317,7 +327,7 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-8 h-8 border-2 border-[#ff6b2b]/30 border-t-[#ff6b2b] rounded-full animate-spin" />
       </div>
     }>

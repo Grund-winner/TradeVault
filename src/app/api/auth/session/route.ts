@@ -18,12 +18,12 @@ export async function GET() {
 
     const sub = await checkSubscription(user.id);
 
-    // Get MT fields separately since they're not in AuthUser interface
-    const mtFields = await db.$queryRawUnsafe<Array<{ mtApiKey: string | null; mtAccountId: string | null; mtServer: string | null; mtPlatform: string | null; mtLastSync: string | null }>>(
-      `SELECT "mtApiKey", "mtAccountId", "mtServer", "mtPlatform", "mtLastSync" FROM users WHERE id = $1`,
+    // Get MT fields and avatarUrl separately
+    const fields = await db.$queryRawUnsafe<Array<{ mtApiKey: string | null; mtAccountId: string | null; mtServer: string | null; mtPlatform: string | null; mtLastSync: string | null; avatarUrl: string | null }>>(
+      `SELECT "mtApiKey", "mtAccountId", "mtServer", "mtPlatform", "mtLastSync", "avatarUrl" FROM users WHERE id = $1`,
       user.id
     );
-    const mt = mtFields[0] || {};
+    const f = fields[0] || {};
 
     return NextResponse.json({
       exists: true,
@@ -35,14 +35,15 @@ export async function GET() {
       locale: user.locale,
       initialBalance: user.initialBalance,
       isActive: user.isActive,
+      avatarUrl: f.avatarUrl || null,
       subscription: sub,
       mt: {
-        hasApiKey: !!mt.mtApiKey,
-        apiKeyMasked: mt.mtApiKey ? `${mt.mtApiKey.substring(0, 6)}${'*'.repeat(24)}${mt.mtApiKey.substring(mt.mtApiKey.length - 4)}` : null,
-        accountId: mt.mtAccountId,
-        server: mt.mtServer,
-        platform: mt.mtPlatform,
-        lastSync: mt.mtLastSync,
+        hasApiKey: !!f.mtApiKey,
+        apiKeyMasked: f.mtApiKey ? `${f.mtApiKey.substring(0, 6)}${'*'.repeat(24)}${f.mtApiKey.substring(f.mtApiKey.length - 4)}` : null,
+        accountId: f.mtAccountId,
+        server: f.mtServer,
+        platform: f.mtPlatform,
+        lastSync: f.mtLastSync,
       },
     });
   } catch (error) {
