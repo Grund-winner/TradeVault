@@ -1,5 +1,31 @@
 import { cookies } from 'next/headers';
 import { db, ensureDatabase } from './db';
+import bcrypt from 'bcryptjs';
+import { createHash } from 'crypto';
+
+// Legacy SHA256 hash (for migrating existing passwords)
+function legacyHash(password: string): string {
+  return createHash('sha256').update(password + '_tv_salt_2024').digest('hex');
+}
+
+// Hash password with bcrypt (new standard)
+export async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, 12);
+}
+
+// Verify password: try bcrypt first, fall back to SHA256 for legacy passwords
+export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
+  // Try bcrypt first (new format - starts with $2a$ or $2b$)
+  if (hashedPassword.startsWith('$2')) {
+    return bcrypt.compare(password, hashedPassword);
+  }
+  // Fall back to legacy SHA256
+  const legacyHashed = legacyHash(password);
+  if (legacyHashed === hashedPassword) {
+    return true; // Caller should re-hash with bcrypt after successful login
+  }
+  return false;
+}
 
 // Convert BigInt values to Number for JSON serialization
 export function safeJson<T>(data: T): T {

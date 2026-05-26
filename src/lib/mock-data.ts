@@ -27,21 +27,6 @@ export interface Trade {
 
 export const trades: Trade[] = [];
 
-const STORAGE_KEY = 'tradevault_trades';
-
-export function loadTrades(): Trade[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch { return []; }
-}
-
-export function saveTrades(tradeList: Trade[]): void {
-  if (typeof window === 'undefined') return;
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(tradeList)); } catch {}
-}
-
 // Max Drawdown calculation
 function calculateMaxDrawdown(tradeList: Trade[]): number {
   if (tradeList.length === 0) return 0;

@@ -9,6 +9,16 @@ interface AiAnalysisProps {
   trades: Trade[];
 }
 
+// Sanitize text by escaping HTML entities
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 export default function AiAnalysis({ trades }: AiAnalysisProps) {
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -48,7 +58,7 @@ export default function AiAnalysis({ trades }: AiAnalysisProps) {
     }
   }, []);
 
-  // Simple markdown-like rendering
+  // Safe markdown-like rendering without dangerouslySetInnerHTML
   const renderMarkdown = (text: string) => {
     const lines = text.split('\n');
     return lines.map((line, i) => {
@@ -59,24 +69,26 @@ export default function AiAnalysis({ trades }: AiAnalysisProps) {
       if (line.startsWith('# ')) {
         return <h2 key={i} className="text-base font-bold text-foreground mt-4 mb-2">{line.slice(2)}</h2>;
       }
-      // Bold
-      const processedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
       // List items
       if (line.startsWith('- ') || line.startsWith('* ')) {
+        const content = line.slice(2);
+        // Parse bold markers
+        const parts = parseBold(content);
         return (
           <div key={i} className="flex items-start gap-2 ml-2 my-1">
             <ChevronRight className="h-3 w-3 text-[#ff6b2b] mt-0.5 flex-shrink-0" />
-            <span className="text-xs text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: processedLine.slice(2) }} />
+            <span className="text-xs text-muted-foreground leading-relaxed">{parts}</span>
           </div>
         );
       }
       // Numbered list
       const numMatch = line.match(/^(\d+)\.\s(.*)/);
       if (numMatch) {
+        const parts = parseBold(numMatch[2]);
         return (
           <div key={i} className="flex items-start gap-2 ml-2 my-1">
             <span className="text-xs font-bold text-[#ff6b2b] mt-0.5 flex-shrink-0">{numMatch[1]}.</span>
-            <span className="text-xs text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: numMatch[2].replace(/\*\*(.*?)\*\*/g, '<strong class="text-foreground">$1</strong>') }} />
+            <span className="text-xs text-muted-foreground leading-relaxed">{parts}</span>
           </div>
         );
       }
@@ -84,10 +96,34 @@ export default function AiAnalysis({ trades }: AiAnalysisProps) {
       if (line.trim() === '') {
         return <div key={i} className="h-2" />;
       }
-      // Normal text
-      return <p key={i} className="text-xs text-muted-foreground leading-relaxed my-1" dangerouslySetInnerHTML={{ __html: processedLine }} />;
+      // Normal text with bold support
+      const parts = parseBold(line);
+      return <p key={i} className="text-xs text-muted-foreground leading-relaxed my-1">{parts}</p>;
     });
   };
+
+  // Parse **bold** markers into React elements safely
+  function parseBold(text: string): React.ReactNode[] {
+    const parts: React.ReactNode[] = [];
+    const regex = /\*\*(.*?)\*\*/g;
+    let lastIndex = 0;
+    let match;
+    let key = 0;
+
+    while ((match = regex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(<span key={key++}>{escapeHtml(text.slice(lastIndex, match.index))}</span>);
+      }
+      parts.push(<strong key={key++} className="text-foreground font-semibold">{escapeHtml(match[1])}</strong>);
+      lastIndex = regex.lastIndex;
+    }
+
+    if (lastIndex < text.length) {
+      parts.push(<span key={key++}>{escapeHtml(text.slice(lastIndex))}</span>);
+    }
+
+    return parts.length > 0 ? parts : [<span key={0}>{escapeHtml(text)}</span>];
+  }
 
   if (!hasTrades) {
     return (
@@ -117,7 +153,7 @@ export default function AiAnalysis({ trades }: AiAnalysisProps) {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-bold text-foreground">Analyse IA</h3>
-          <p className="text-xs text-muted-foreground mt-0.5">Recommandations personnalisées basées sur vos performances</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Recommandations personnalisees basees sur vos performances</p>
         </div>
       </div>
 
@@ -139,7 +175,7 @@ export default function AiAnalysis({ trades }: AiAnalysisProps) {
           <div>
             <p className="text-[10px] text-muted-foreground">P&L Net</p>
             <p className={`text-sm font-bold ${kpis.netPnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              ${kpis.netPnl >= 0 ? '+' : ''}$${kpis.netPnl}
+              ${kpis.netPnl >= 0 ? '+' : ''}{kpis.netPnl}
             </p>
           </div>
         </div>

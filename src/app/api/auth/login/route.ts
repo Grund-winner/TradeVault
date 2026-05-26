@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { ensureDatabase } from '@/lib/db';
 import { createHash } from 'crypto';
-
-async function hashPassword(password: string): Promise<string> {
-  return createHash('sha256').update(password + '_tv_salt_2024').digest('hex');
-}
+import { verifyPassword, hashPassword } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,13 +41,27 @@ export async function POST(request: NextRequest) {
     }
 
     const user = users[0];
-    const hashedPassword = await hashPassword(password);
+    const isPasswordValid = await verifyPassword(password, user.password);
 
-    if (user.password !== hashedPassword) {
+    if (!isPasswordValid) {
       return NextResponse.json(
         { error: 'Identifiants invalides ou compte desactive' },
         { status: 401 }
       );
+    }
+
+    // Migrate legacy SHA256 password to bcrypt on successful login
+    if (!user.password.startsWith('$2')) {
+      try {
+        const newHash = await hashPassword(password);
+        await db.$executeRawUnsafe(
+          `UPDATE users SET password = $1 WHERE id = $2`,
+          newHash,
+          user.id
+        );
+      } catch (migrationError) {
+        console.warn('[Auth] Failed to migrate password to bcrypt:', migrationError);
+      }
     }
 
     const sessionToken = createHash('sha256').update(user.id + Date.now() + '_session').digest('hex');
@@ -95,18 +106,18 @@ export async function POST(request: NextRequest) {
       path: '/',
     });
 
-    // Set non-httpOnly subscription cookie for middleware
+    // Subscription cookie (httpOnly for security)
     response.cookies.set('tv_sub', subStatus, {
-      httpOnly: false,
+      httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: subMaxAge,
       path: '/',
     });
 
-    // Set role cookie for middleware
+    // Role cookie (httpOnly for security)
     response.cookies.set('tv_role', user.role, {
-      httpOnly: false,
+      httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 30,

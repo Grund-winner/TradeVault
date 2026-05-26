@@ -20,7 +20,7 @@ import CommunityPanel from '@/components/community/community-panel';
 import BacktestPanel from '@/components/trading/backtest-panel';
 import ExportPanel from '@/components/trading/export-panel';
 import { computeKPIs, type Trade } from '@/lib/mock-data';
-import { Plus, TrendingUp, FileText, AlertTriangle, CreditCard } from 'lucide-react';
+import { Plus, TrendingUp, FileText, AlertTriangle, CreditCard, CheckCircle2, XCircle } from 'lucide-react';
 
 const defaultFilters: Filters = {
   year: 'Tous',
@@ -86,6 +86,9 @@ export default function Home() {
   const [initialBalance, setInitialBalance] = useState(0);
   const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState('');
+
+  // Toast notification state
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Load user settings from session
   const fetchSession = useCallback(async () => {
@@ -157,14 +160,19 @@ export default function Home() {
         setAllTradeData(prev => [created, ...prev].sort((a, b) => a.date.localeCompare(b.date)));
         setShowAddDialog(false);
         setActiveTab('journal');
+        setToast({ type: 'success', message: 'Trade ajoute avec succes' });
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setToast({ type: 'error', message: errData.error || 'Erreur lors de l\'ajout du trade' });
       }
     } catch {
-      // Fallback: add locally
+      setToast({ type: 'error', message: 'Erreur de connexion. Le trade a ete ajoute localement.' });
       setAllTradeData(prev => [trade, ...prev].sort((a, b) => a.date.localeCompare(b.date)));
       setShowAddDialog(false);
       setActiveTab('journal');
     } finally {
       setIsSaving(false);
+      setTimeout(() => setToast(null), 4000);
     }
   };
 
@@ -175,10 +183,14 @@ export default function Home() {
       });
       if (res.ok) {
         setAllTradeData(prev => prev.filter(t => t.id !== tradeId));
+        setToast({ type: 'success', message: 'Trade supprime' });
+      } else {
+        setToast({ type: 'error', message: 'Erreur lors de la suppression' });
       }
     } catch {
-      // Fallback: remove locally
-      setAllTradeData(prev => prev.filter(t => t.id !== tradeId));
+      setToast({ type: 'error', message: 'Erreur de connexion' });
+    } finally {
+      setTimeout(() => setToast(null), 4000);
     }
   };
 
@@ -475,6 +487,29 @@ export default function Home() {
           )}
         </div>
       </main>
+
+      {/* Toast notifications */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: 50, x: '-50%' }}
+            className={`fixed bottom-6 left-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-xl border ${
+              toast.type === 'success'
+                ? 'bg-green-500/10 border-green-500/20 text-green-400'
+                : 'bg-red-500/10 border-red-500/20 text-red-400'
+            } backdrop-blur-xl`}
+          >
+            {toast.type === 'success' ? (
+              <CheckCircle2 className="h-4 w-4 flex-shrink-0" />
+            ) : (
+              <XCircle className="h-4 w-4 flex-shrink-0" />
+            )}
+            <p className="text-sm font-medium">{toast.message}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* AI Chat Widget - always visible */}
       <AiChatWidget />

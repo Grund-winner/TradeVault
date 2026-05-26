@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Save, LogOut, Moon, Sun, Loader2, Check, Crown, ExternalLink, Wallet, Link2, Key, Download, RefreshCw, Copy, CheckCircle2, Zap, Monitor, Camera, Trash2, Upload } from 'lucide-react';
+import { Settings, Save, LogOut, Moon, Sun, Loader2, Check, Crown, ExternalLink, Wallet, Link2, Key, Download, RefreshCw, Copy, CheckCircle2, Zap, Monitor, Camera, Trash2, Upload, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -65,6 +65,15 @@ export default function SettingsPanel({
   // Avatar state
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPasswords, setShowPasswords] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
 
   const WEBHOOK_URL = 'https://trade-vault-xi.vercel.app/api/webhook/mt4';
 
@@ -384,6 +393,115 @@ export default function SettingsPanel({
                   <p className="text-[11px] text-muted-foreground/60">
                     JPG, PNG ou GIF. Taille maximale : 200 Ko.
                   </p>
+                </motion.div>
+
+                {/* Divider */}
+                <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+
+                {/* Change Password */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.085 }}
+                  className="space-y-3"
+                >
+                  <div className="flex items-center gap-2">
+                    <Lock className="h-4 w-4 text-amber-400" />
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Changer le mot de passe
+                    </Label>
+                  </div>
+                  <div className="p-4 rounded-xl bg-muted border border-border space-y-3">
+                    <div className="relative">
+                      <Input
+                        type={showPasswords ? 'text' : 'password'}
+                        value={currentPassword}
+                        onChange={(e) => { setCurrentPassword(e.target.value); setPasswordError(null); setPasswordSuccess(false); }}
+                        placeholder="Mot de passe actuel"
+                        className="h-9 rounded-lg bg-background border-border text-foreground text-sm pr-9 placeholder:text-muted-foreground/50"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPasswords(!showPasswords)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {showPasswords ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <Input
+                        type={showPasswords ? 'text' : 'password'}
+                        value={newPassword}
+                        onChange={(e) => { setNewPassword(e.target.value); setPasswordError(null); setPasswordSuccess(false); }}
+                        placeholder="Nouveau mot de passe (min. 6 caracteres)"
+                        className="h-9 rounded-lg bg-background border-border text-foreground text-sm pr-9 placeholder:text-muted-foreground/50"
+                      />
+                    </div>
+                    <div className="relative">
+                      <Input
+                        type={showPasswords ? 'text' : 'password'}
+                        value={confirmPassword}
+                        onChange={(e) => { setConfirmPassword(e.target.value); setPasswordError(null); setPasswordSuccess(false); }}
+                        placeholder="Confirmer le nouveau mot de passe"
+                        className="h-9 rounded-lg bg-background border-border text-foreground text-sm pr-9 placeholder:text-muted-foreground/50"
+                      />
+                    </div>
+                    {passwordError && (
+                      <div className="flex items-center gap-2 text-destructive">
+                        <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                        <p className="text-[11px]">{passwordError}</p>
+                      </div>
+                    )}
+                    {passwordSuccess && (
+                      <div className="flex items-center gap-2 text-green-400">
+                        <Check className="h-3.5 w-3.5 flex-shrink-0" />
+                        <p className="text-[11px]">Mot de passe modifie avec succes !</p>
+                      </div>
+                    )}
+                    <button
+                      onClick={async () => {
+                        if (!currentPassword || !newPassword || !confirmPassword) {
+                          setPasswordError('Tous les champs sont requis.');
+                          return;
+                        }
+                        if (newPassword.length < 6) {
+                          setPasswordError('Le nouveau mot de passe doit contenir au moins 6 caracteres.');
+                          return;
+                        }
+                        if (newPassword !== confirmPassword) {
+                          setPasswordError('Les mots de passe ne correspondent pas.');
+                          return;
+                        }
+                        setIsChangingPassword(true);
+                        setPasswordError(null);
+                        try {
+                          const res = await fetch('/api/auth/change-password', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ currentPassword, newPassword }),
+                          });
+                          if (res.ok) {
+                            setPasswordSuccess(true);
+                            setCurrentPassword('');
+                            setNewPassword('');
+                            setConfirmPassword('');
+                          } else {
+                            const data = await res.json().catch(() => ({}));
+                            setPasswordError(data.error || 'Erreur lors du changement de mot de passe.');
+                          }
+                        } catch {
+                          setPasswordError('Erreur de connexion. Reessayez.');
+                        } finally {
+                          setIsChangingPassword(false);
+                        }
+                      }}
+                      disabled={isChangingPassword}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-medium hover:bg-amber-500/20 transition-all disabled:opacity-50"
+                    >
+                      {isChangingPassword ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Lock className="h-3.5 w-3.5" />}
+                      Modifier le mot de passe
+                    </button>
+                  </div>
                 </motion.div>
 
                 {/* Divider */}

@@ -64,7 +64,7 @@ ${preprocessor}
 
 //--- Configuration
 input string API_KEY       = "${apiKey}";  // TradeVault API Key
-input string WEBHOOK_URL   = "https://trade-vault-xi.vercel.app/api/webhook/mt4";
+input string WEBHOOK_URL   = "${process.env.NEXT_PUBLIC_URL || 'https://trade-vault-xi.vercel.app'}/api/webhook/mt4";
 input int    SYNC_INTERVAL = 300;         // Sync interval (seconds)
 input bool   LOG_VERBOSE   = false;       // Verbose logging
 

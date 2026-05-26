@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { ensureDatabase } from '@/lib/db';
 import { createHash } from 'crypto';
-
-async function hashPassword(password: string): Promise<string> {
-  return createHash('sha256').update(password + '_tv_salt_2024').digest('hex');
-}
+import { hashPassword } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -88,18 +85,18 @@ export async function POST(request: NextRequest) {
       path: '/',
     });
 
-    // Set non-httpOnly subscription cookie for middleware (7-day trial)
+    // Subscription cookie (httpOnly for security - 7-day trial)
     response.cookies.set('tv_sub', 'active', {
-      httpOnly: false,
+      httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7,
       path: '/',
     });
 
-    // Set role cookie for middleware
+    // Role cookie (httpOnly for security)
     response.cookies.set('tv_role', 'user', {
-      httpOnly: false,
+      httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 30,

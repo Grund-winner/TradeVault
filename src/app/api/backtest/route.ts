@@ -58,12 +58,12 @@ export async function POST(request: NextRequest) {
     let trades: TradeRow[];
     if (strategy === 'all') {
       trades = await db.$queryRawUnsafe<TradeRow[]>(
-        `SELECT pnl, pnl_r, strategy FROM trades WHERE "userId" = $1 AND status = 'closed'`,
+        `SELECT pnl, pnl_r, strategy FROM trades WHERE "userId" = $1 AND status IN ('Win', 'Loss')`,
         currentUser.id
       );
     } else {
       trades = await db.$queryRawUnsafe<TradeRow[]>(
-        `SELECT pnl, pnl_r, strategy FROM trades WHERE "userId" = $1 AND status = 'closed' AND strategy = $2`,
+        `SELECT pnl, pnl_r, strategy FROM trades WHERE "userId" = $1 AND status IN ('Win', 'Loss') AND strategy = $2`,
         currentUser.id,
         strategy
       );
