@@ -12,13 +12,14 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, ArrowUpDown, ChevronLeft, ChevronRight, Trash2, MessageSquare } from 'lucide-react';
+import { Plus, ArrowUpDown, ChevronLeft, ChevronRight, Trash2, MessageSquare, Pencil } from 'lucide-react';
 import type { Trade } from '@/lib/mock-data';
 
 interface TradeJournalProps {
   trades: Trade[];
   onDeleteTrade: (tradeId: number) => void;
   onAddClick: () => void;
+  onEditTrade?: (trade: Trade) => void;
 }
 
 type SortKey = 'date' | 'instrument' | 'direction' | 'pnl' | 'pnlR' | 'status' | 'strategy';
@@ -35,7 +36,7 @@ function SortHeaderCell({ label, k, onSort }: { label: string; k: SortKey; onSor
   );
 }
 
-export default function TradeJournal({ trades, onDeleteTrade, onAddClick }: TradeJournalProps) {
+export default function TradeJournal({ trades, onDeleteTrade, onAddClick, onEditTrade }: TradeJournalProps) {
   const [sortKey, setSortKey] = useState<SortKey>('date');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const [page, setPage] = useState(0);
@@ -104,7 +105,7 @@ export default function TradeJournal({ trades, onDeleteTrade, onAddClick }: Trad
                 <TableHead className="text-muted-foreground"><SortHeaderCell label="Statut" k="status" onSort={toggleSort} /></TableHead>
                 <TableHead className="text-muted-foreground hidden lg:table-cell"><SortHeaderCell label="Strategie" k="strategy" onSort={toggleSort} /></TableHead>
                 <TableHead className="text-muted-foreground hidden lg:table-cell">Notes</TableHead>
-                <TableHead className="text-muted-foreground w-10"></TableHead>
+                <TableHead className="text-muted-foreground w-20"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -158,13 +159,22 @@ export default function TradeJournal({ trades, onDeleteTrade, onAddClick }: Trad
                       )}
                     </TableCell>
                     <TableCell>
-                      <button
-                        onClick={() => { if (confirm('Supprimer ce trade ?')) onDeleteTrade(trade.id); }}
-                        className="p-1.5 rounded-lg text-muted-foreground/40 hover:text-[#ef4444] hover:bg-[#ef4444]/10 transition-all"
-                        title="Supprimer ce trade"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                      <div className="flex items-center gap-0.5">
+                        <button
+                          onClick={() => onEditTrade?.(trade)}
+                          className="p-1.5 rounded-lg text-muted-foreground/40 hover:text-[#ff6b2b] hover:bg-[#ff6b2b]/10 transition-all"
+                          title="Modifier ce trade"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => { if (confirm('Supprimer ce trade ?')) onDeleteTrade(trade.id); }}
+                          className="p-1.5 rounded-lg text-muted-foreground/40 hover:text-[#ef4444] hover:bg-[#ef4444]/10 transition-all"
+                          title="Supprimer ce trade"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </TableCell>
                   </motion.tr>
                 ))}

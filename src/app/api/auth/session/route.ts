@@ -19,8 +19,8 @@ export async function GET() {
     const sub = await checkSubscription(user.id);
 
     // Get MT fields and avatarUrl separately
-    const fields = await db.$queryRawUnsafe<Array<{ mtApiKey: string | null; mtAccountId: string | null; mtServer: string | null; mtPlatform: string | null; mtLastSync: string | null; avatarUrl: string | null }>>(
-      `SELECT "mtApiKey", "mtAccountId", "mtServer", "mtPlatform", "mtLastSync", "avatarUrl" FROM users WHERE id = $1`,
+    const fields = await db.$queryRawUnsafe<Array<{ mtApiKey: string | null; mtAccountId: string | null; mtServer: string | null; mtPlatform: string | null; mtLastSync: string | null; avatarUrl: string | null; securityQuestion: string | null }>>(
+      `SELECT "mtApiKey", "mtAccountId", "mtServer", "mtPlatform", "mtLastSync", "avatarUrl", "securityQuestion" FROM users WHERE id = $1`,
       user.id
     );
     const f = fields[0] || {};
@@ -36,6 +36,7 @@ export async function GET() {
       initialBalance: user.initialBalance,
       isActive: user.isActive,
       avatarUrl: f.avatarUrl || null,
+      securityQuestion: f.securityQuestion || null,
       subscription: sub,
       mt: {
         hasApiKey: !!f.mtApiKey,

@@ -75,6 +75,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [allTradeData, setAllTradeData] = useState<Trade[]>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -147,6 +148,16 @@ export default function Home() {
   const filteredTrades = useMemo(() => applyFilters(allTradeData, filters, searchQuery), [allTradeData, filters, searchQuery]);
   const kpis = useMemo(() => computeKPIs(filteredTrades), [filteredTrades]);
 
+  const handleEditTrade = async (trade: Trade) => {
+    setEditingTrade(trade);
+    setShowAddDialog(true);
+  };
+
+  const handleCloseDialog = (open: boolean) => {
+    setShowAddDialog(open);
+    if (!open) setEditingTrade(null);
+  };
+
   const handleAddTrade = async (trade: Trade) => {
     setIsSaving(true);
     try {
@@ -170,6 +181,32 @@ export default function Home() {
       setAllTradeData(prev => [trade, ...prev].sort((a, b) => a.date.localeCompare(b.date)));
       setShowAddDialog(false);
       setActiveTab('journal');
+    } finally {
+      setIsSaving(false);
+      setTimeout(() => setToast(null), 4000);
+    }
+  };
+
+  const handleEditTradeSubmit = async (trade: Trade) => {
+    setIsSaving(true);
+    try {
+      const res = await fetch(`/api/trades?id=${trade.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(trade),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setAllTradeData(prev => prev.map(t => t.id === updated.id ? updated : t));
+        setShowAddDialog(false);
+        setEditingTrade(null);
+        setToast({ type: 'success', message: 'Trade modifie avec succes' });
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setToast({ type: 'error', message: errData.error || 'Erreur lors de la modification' });
+      }
+    } catch {
+      setToast({ type: 'error', message: 'Erreur de connexion' });
     } finally {
       setIsSaving(false);
       setTimeout(() => setToast(null), 4000);
@@ -314,7 +351,7 @@ export default function Home() {
 
           {/* No trades at all - show welcome */}
           {!hasTrades && (
-            <EmptyState onAddTrade={() => setShowAddDialog(true)} />
+            <EmptyState onAddTrade={() => { setEditingTrade(null); setShowAddDialog(true); }} />
           )}
 
           {/* Has trades but filters return nothing */}
@@ -430,7 +467,7 @@ export default function Home() {
 
               {activeTab === 'journal' && (
                 <motion.div key="journal" variants={pageVariants} initial="initial" animate="animate" exit="exit">
-                  <TradeJournal trades={filteredTrades} onDeleteTrade={handleDeleteTrade} onAddClick={() => setShowAddDialog(true)} />
+                  <TradeJournal trades={filteredTrades} onDeleteTrade={handleDeleteTrade} onAddClick={() => { setEditingTrade(null); setShowAddDialog(true); }} onEditTrade={handleEditTrade} />
                 </motion.div>
               )}
 
@@ -466,7 +503,7 @@ export default function Home() {
 
               {activeTab === 'export' && (
                 <motion.div key="export" variants={pageVariants} initial="initial" animate="animate" exit="exit">
-                  <ExportPanel trades={filteredTrades} />
+                  <ExportPanel trades={filteredTrades} onImportComplete={fetchTrades} />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -477,7 +514,7 @@ export default function Home() {
             <motion.button
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              onClick={() => setShowAddDialog(true)}
+              onClick={() => { setEditingTrade(null); setShowAddDialog(true); }}
               className="fixed bottom-6 right-6 w-14 h-14 rounded-2xl bg-[#ff6b2b] hover:bg-[#ff4500] text-white shadow-xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all z-40 flex items-center justify-center lg:hidden"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -516,9 +553,12 @@ export default function Home() {
 
       {/* AddTradeDialog at page level */}
       <AddTradeDialog
+        key={editingTrade?.id ?? 'new'}
         open={showAddDialog}
-        onOpenChange={setShowAddDialog}
+        onOpenChange={handleCloseDialog}
         onAdd={handleAddTrade}
+        editTrade={editingTrade}
+        onEdit={handleEditTradeSubmit}
       />
 
       {/* Settings Panel */}

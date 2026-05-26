@@ -53,9 +53,11 @@ model User {
   mtApiKey      String?   @map("mtApiKey")
   mtAccountId   String?   @map("mtAccountId")
   mtServer      String?   @map("mtServer")
-  mtPlatform    String?   @default("mt4") @map("mtPlatform")
-  mtLastSync    DateTime? @map("mtLastSync")
-  createdAt     DateTime  @default(now())
+  mtPlatform       String?   @default("mt4") @map("mtPlatform")
+  mtLastSync       DateTime? @map("mtLastSync")
+  securityQuestion String?   @map("securityQuestion")
+  securityAnswer   String?   @map("securityAnswer")
+  createdAt        DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   subscriptions    Subscription[]

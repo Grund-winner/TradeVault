@@ -25,6 +25,8 @@ interface AddTradeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAdd: (trade: Trade) => void;
+  editTrade?: Trade | null;
+  onEdit?: (trade: Trade) => void;
 }
 
 // Get pip size for an instrument
@@ -37,22 +39,24 @@ function getPipSize(instrument: string): number {
   return 0.0001;
 }
 
-export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDialogProps) {
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [instrument, setInstrument] = useState('');
-  const [category, setCategory] = useState<InstrumentCategory>('FOREX');
-  const [direction, setDirection] = useState<Direction>('Buy');
-  const [entry, setEntry] = useState('');
-  const [stopLoss, setStopLoss] = useState('');
-  const [takeProfit, setTakeProfit] = useState('');
-  const [pnl, setPnl] = useState('');
-  const [pnlR, setPnlR] = useState('');
-  const [status, setStatus] = useState<'Win' | 'Loss'>('Win');
-  const [strategy, setStrategy] = useState<Strategy>('Breakout');
-  const [type, setType] = useState<TradeType>('Intraday');
-  const [timeframe, setTimeframe] = useState<Timeframe>('H1');
-  const [notes, setNotes] = useState('');
-  const [tags, setTags] = useState('');
+export default function AddTradeDialog({ open, onOpenChange, onAdd, editTrade, onEdit }: AddTradeDialogProps) {
+  const isEditing = !!editTrade;
+
+  const [date, setDate] = useState(() => editTrade ? editTrade.date.split('T')[0] : new Date().toISOString().split('T')[0]);
+  const [instrument, setInstrument] = useState(() => editTrade?.instrument || '');
+  const [category, setCategory] = useState<InstrumentCategory>(() => (editTrade?.category as InstrumentCategory) || 'FOREX');
+  const [direction, setDirection] = useState<Direction>(() => (editTrade?.direction as Direction) || 'Buy');
+  const [entry, setEntry] = useState(() => editTrade?.entry.toString() || '');
+  const [stopLoss, setStopLoss] = useState(() => editTrade?.stopLoss.toString() || '');
+  const [takeProfit, setTakeProfit] = useState(() => editTrade?.takeProfit.toString() || '');
+  const [pnl, setPnl] = useState(() => editTrade?.pnl.toString() || '');
+  const [pnlR, setPnlR] = useState(() => editTrade?.pnlR.toString() || '');
+  const [status, setStatus] = useState<'Win' | 'Loss'>(() => (editTrade?.status === 'Win' || editTrade?.status === 'Break Even') ? 'Win' : 'Loss');
+  const [strategy, setStrategy] = useState<Strategy>(() => (editTrade?.strategy as Strategy) || 'Breakout');
+  const [type, setType] = useState<TradeType>(() => (editTrade?.type as TradeType) || 'Intraday');
+  const [timeframe, setTimeframe] = useState<Timeframe>(() => (editTrade?.timeframe as Timeframe) || 'H1');
+  const [notes, setNotes] = useState(() => editTrade?.notes || '');
+  const [tags, setTags] = useState(() => editTrade?.tags?.join(', ') || '');
 
   // Auto-calculate pips
   const pipCalculations = useMemo(() => {
@@ -103,7 +107,7 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
     const slPips = pipSize > 0 ? Math.round(Math.abs(entryVal - slVal) / pipSize) : 0;
 
     const trade: Trade = {
-      id: Date.now(),
+      id: editTrade?.id || Date.now(),
       date,
       instrument: instrument.toUpperCase(),
       category,
@@ -121,7 +125,11 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
       tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : undefined,
     };
 
-    onAdd(trade);
+    if (isEditing && onEdit) {
+      onEdit(trade);
+    } else {
+      onAdd(trade);
+    }
     onOpenChange(false);
 
     // Reset form
@@ -139,9 +147,14 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-popover border border-border text-foreground max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-lg font-bold text-foreground">Ajouter un Trade</DialogTitle>
+          <DialogTitle className="text-lg font-bold text-foreground">
+            {isEditing ? 'Modifier le Trade' : 'Ajouter un Trade'}
+          </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
-            Enregistrez les détails de votre nouvelle opération.
+            {isEditing
+              ? 'Modifiez les détails de votre opération.'
+              : 'Enregistrez les détails de votre nouvelle opération.'
+            }
           </DialogDescription>
         </DialogHeader>
 
@@ -392,7 +405,7 @@ export default function AddTradeDialog({ open, onOpenChange, onAdd }: AddTradeDi
               onClick={handleSubmit}
               className="flex-1 h-10 rounded-xl bg-[#ff6b2b] hover:bg-[#ff4500] text-white font-medium shadow-lg shadow-orange-500/20 transition-all"
             >
-              Ajouter le trade
+              {isEditing ? 'Enregistrer les modifications' : 'Ajouter le trade'}
             </Button>
           </div>
         </motion.div>

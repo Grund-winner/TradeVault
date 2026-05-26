@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, ensureDatabase } from '@/lib/db';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, hashPassword } from '@/lib/auth';
 
 export async function PUT(request: NextRequest) {
   try {
@@ -14,7 +14,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const { siteName, siteSubtitle, theme, initialBalance, mtAccountId, mtServer, mtPlatform, avatarUrl } = await request.json();
+    const { siteName, siteSubtitle, theme, initialBalance, mtAccountId, mtServer, mtPlatform, avatarUrl, securityQuestion, securityAnswer } = await request.json();
 
     const updates: string[] = [];
     const values: unknown[] = [];
@@ -68,6 +68,26 @@ export async function PUT(request: NextRequest) {
       } else {
         updates.push(`"avatarUrl" = $${paramIndex}`);
         values.push(String(avatarUrl));
+        paramIndex++;
+      }
+    }
+
+    if (securityQuestion !== undefined) {
+      if (securityQuestion === null) {
+        updates.push(`"securityQuestion" = NULL`);
+      } else {
+        updates.push(`"securityQuestion" = $${paramIndex}`);
+        values.push(String(securityQuestion));
+        paramIndex++;
+      }
+    }
+
+    if (securityAnswer !== undefined) {
+      if (securityAnswer === null) {
+        updates.push(`"securityAnswer" = NULL`);
+      } else {
+        updates.push(`"securityAnswer" = $${paramIndex}`);
+        values.push(await hashPassword(String(securityAnswer)));
         paramIndex++;
       }
     }

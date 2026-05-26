@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { Settings, Save, LogOut, Moon, Sun, Loader2, Check, Crown, ExternalLink, Wallet, Link2, Key, Download, RefreshCw, Copy, CheckCircle2, Zap, Monitor, Camera, Trash2, Upload, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Settings, Save, LogOut, Moon, Sun, Loader2, Check, Crown, ExternalLink, Wallet, Link2, Key, Download, RefreshCw, Copy, CheckCircle2, Zap, Monitor, Camera, Trash2, Upload, Lock, Eye, EyeOff, AlertCircle, ShieldQuestion, UserX } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -75,6 +75,29 @@ export default function SettingsPanel({
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
 
+  // Security question state
+  const [securityQuestion, setSecurityQuestion] = useState('');
+  const [securityAnswer, setSecurityAnswer] = useState('');
+  const [isSavingSecurity, setIsSavingSecurity] = useState(false);
+  const [securitySuccess, setSecuritySuccess] = useState(false);
+  const [securityError, setSecurityError] = useState<string | null>(null);
+  const [currentSecurityQuestion, setCurrentSecurityQuestion] = useState<string | null>(null);
+
+  // Account deletion state
+  const [deleteConfirmPassword, setDeleteConfirmPassword] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const SECURITY_QUESTIONS = [
+    'Quel est le nom de votre premier animal de compagnie ?',
+    'Dans quelle ville etes-vous ne(e) ?',
+    'Quel est le nom de votre ecole primaire ?',
+    'Quelle est votre nourriture preferee ?',
+    'Quel est le prenom de votre grand-mere maternelle ?',
+    'Quel est le premier film que vous avez vu au cinema ?',
+  ];
+
   const WEBHOOK_URL = 'https://trade-vault-xi.vercel.app/api/webhook/mt4';
 
   // Fetch current settings when panel opens
@@ -99,6 +122,13 @@ export default function SettingsPanel({
           if (data.mt.server) setMtServer(data.mt.server);
         }
         if (data.avatarUrl) setAvatarUrl(data.avatarUrl);
+        if (data.securityQuestion) {
+          setCurrentSecurityQuestion(data.securityQuestion);
+          setSecurityQuestion(data.securityQuestion);
+        } else {
+          setCurrentSecurityQuestion(null);
+          setSecurityQuestion('');
+        }
       }
     } catch {
       setSiteName('TradeVault');
@@ -116,6 +146,12 @@ export default function SettingsPanel({
       setShowFullKey(false);
       setCopiedKey(false);
       setIsUploadingAvatar(false);
+      setSecurityAnswer('');
+      setSecuritySuccess(false);
+      setSecurityError(null);
+      setShowDeleteConfirm(false);
+      setDeleteConfirmPassword('');
+      setDeleteError(null);
     }
   }, [open, fetchSettings]);
 
@@ -846,6 +882,212 @@ export default function SettingsPanel({
                         <span>L&apos;EA synchronise automatiquement vos trades fermes toutes les 5 minutes</span>
                       </li>
                     </ol>
+                  </div>
+                </motion.div>
+                {/* Security Question Section */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.3 }}
+                  className="space-y-3"
+                >
+                  <div className="flex items-center gap-2">
+                    <ShieldQuestion className="h-4 w-4 text-purple-400" />
+                    <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Question de securite
+                    </Label>
+                  </div>
+                  <div className="p-4 rounded-xl bg-muted border border-border space-y-3">
+                    {currentSecurityQuestion && (
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/20">
+                        <Check className="h-3.5 w-3.5 text-green-400 flex-shrink-0" />
+                        <p className="text-[11px] text-green-400">Question configuree</p>
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      <p className="text-[11px] text-muted-foreground font-medium">Question de securite</p>
+                      <Select value={securityQuestion} onValueChange={(val) => { setSecurityQuestion(val); setSecuritySuccess(false); setSecurityError(null); }}>
+                        <SelectTrigger className="h-9 rounded-lg bg-background border-border text-foreground text-xs">
+                          <SelectValue placeholder="Choisir une question..." />
+                        </SelectTrigger>
+                        <SelectContent className="bg-popover border-border">
+                          {SECURITY_QUESTIONS.map((q) => (
+                            <SelectItem key={q} value={q}>{q}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-[11px] text-muted-foreground font-medium">Votre reponse</p>
+                      <Input
+                        type="text"
+                        value={securityAnswer}
+                        onChange={(e) => { setSecurityAnswer(e.target.value); setSecuritySuccess(false); setSecurityError(null); }}
+                        placeholder="Entrez votre reponse secrete"
+                        className="h-9 rounded-lg bg-background border-border text-foreground text-sm placeholder:text-muted-foreground/50"
+                      />
+                    </div>
+                    {securityError && (
+                      <div className="flex items-center gap-2 text-destructive">
+                        <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                        <p className="text-[11px]">{securityError}</p>
+                      </div>
+                    )}
+                    {securitySuccess && (
+                      <div className="flex items-center gap-2 text-green-400">
+                        <Check className="h-3.5 w-3.5 flex-shrink-0" />
+                        <p className="text-[11px]">Question de securite enregistree !</p>
+                      </div>
+                    )}
+                    <button
+                      onClick={async () => {
+                        if (!securityQuestion) {
+                          setSecurityError('Veuillez choisir une question.');
+                          return;
+                        }
+                        if (!securityAnswer.trim()) {
+                          setSecurityError('Veuillez entrer votre reponse.');
+                          return;
+                        }
+                        setIsSavingSecurity(true);
+                        setSecurityError(null);
+                        try {
+                          const res = await fetch('/api/auth/settings', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ securityQuestion, securityAnswer }),
+                          });
+                          if (res.ok) {
+                            setSecuritySuccess(true);
+                            setCurrentSecurityQuestion(securityQuestion);
+                          } else {
+                            const data = await res.json().catch(() => ({}));
+                            setSecurityError(data.error || 'Erreur lors de l\'enregistrement.');
+                          }
+                        } catch {
+                          setSecurityError('Erreur de connexion. Reessayez.');
+                        } finally {
+                          setIsSavingSecurity(false);
+                        }
+                      }}
+                      disabled={isSavingSecurity}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-medium hover:bg-purple-500/20 transition-all disabled:opacity-50"
+                    >
+                      {isSavingSecurity ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ShieldQuestion className="h-3.5 w-3.5" />}
+                      Enregistrer la question de securite
+                    </button>
+                  </div>
+                </motion.div>
+
+                {/* Divider */}
+                <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+
+                {/* Zone dangereuse - Account Deletion */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.35 }}
+                  className="space-y-3"
+                >
+                  <div className="flex items-center gap-2">
+                    <UserX className="h-4 w-4 text-destructive" />
+                    <Label className="text-xs font-medium text-destructive uppercase tracking-wider">
+                      Zone dangereuse
+                    </Label>
+                  </div>
+                  <div className="p-4 rounded-xl bg-destructive/5 border border-destructive/20 space-y-3">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Supprimer mon compte</p>
+                      <p className="text-[11px] text-muted-foreground mt-1">
+                        Cette action est irreversible. Toutes vos donnees (trades, abonnements, conversations AI, etc.) seront definitivement supprimees.
+                      </p>
+                    </div>
+
+                    <AnimatePresence>
+                      {showDeleteConfirm && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="space-y-3 overflow-hidden"
+                        >
+                          <div className="relative">
+                            <Input
+                              type="password"
+                              value={deleteConfirmPassword}
+                              onChange={(e) => { setDeleteConfirmPassword(e.target.value); setDeleteError(null); }}
+                              placeholder="Confirmez avec votre mot de passe"
+                              className="h-9 rounded-lg bg-background border-destructive/30 text-foreground text-sm placeholder:text-muted-foreground/50"
+                            />
+                          </div>
+                          {deleteError && (
+                            <div className="flex items-center gap-2 text-destructive">
+                              <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                              <p className="text-[11px]">{deleteError}</p>
+                            </div>
+                          )}
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmPassword(''); setDeleteError(null); }}
+                              disabled={isDeletingAccount}
+                              className="flex-1 py-2 rounded-lg bg-muted border border-border text-foreground text-xs font-medium hover:bg-accent transition-all disabled:opacity-50"
+                            >
+                              Annuler
+                            </button>
+                            <button
+                              onClick={async () => {
+                                if (!deleteConfirmPassword) {
+                                  setDeleteError('Veuillez entrer votre mot de passe.');
+                                  return;
+                                }
+                                setIsDeletingAccount(true);
+                                setDeleteError(null);
+                                try {
+                                  const res = await fetch('/api/auth/change-password', {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ currentPassword: deleteConfirmPassword, newPassword: deleteConfirmPassword }),
+                                  });
+                                  if (res.ok) {
+                                    // Password verified, now delete account
+                                    const delRes = await fetch('/api/auth/account', { method: 'DELETE' });
+                                    if (delRes.ok) {
+                                      onOpenChange(false);
+                                      onLogout();
+                                    } else {
+                                      const data = await delRes.json().catch(() => ({}));
+                                      setDeleteError(data.error || 'Erreur lors de la suppression.');
+                                    }
+                                  } else {
+                                    setDeleteError('Mot de passe incorrect.');
+                                  }
+                                } catch {
+                                  setDeleteError('Erreur de connexion. Reessayez.');
+                                } finally {
+                                  setIsDeletingAccount(false);
+                                }
+                              }}
+                              disabled={isDeletingAccount}
+                              className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-destructive text-white text-xs font-medium hover:bg-destructive/90 transition-all disabled:opacity-50"
+                            >
+                              {isDeletingAccount ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                              Confirmer la suppression
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    {!showDeleteConfirm && (
+                      <button
+                        onClick={() => setShowDeleteConfirm(true)}
+                        className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-xs font-medium hover:bg-destructive/20 transition-all"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Supprimer mon compte
+                      </button>
+                    )}
                   </div>
                 </motion.div>
               </>
